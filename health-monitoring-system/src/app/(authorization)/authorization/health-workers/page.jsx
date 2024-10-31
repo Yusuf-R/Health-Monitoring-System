@@ -1,4 +1,4 @@
-function health-worker() {
+function healthWorker() {
     return (
         <>
             <h4>AuthJs</h4>
@@ -6,4 +6,4 @@ function health-worker() {
     )
 }
 
-export default health-worker;
+export default healthWorker;
