@@ -3,6 +3,7 @@ import "./globals.css";
 import ReactQueryProvider from "@/components/ReactQuery/ReactQueryProvider";
 import { Toaster } from "sonner";
 
+
 const geistSans = localFont({
     src: "./fonts/GeistVF.woff",
     variable: "--font-geist-sans",
