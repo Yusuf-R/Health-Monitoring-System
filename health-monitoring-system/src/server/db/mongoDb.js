@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 // const uri = process.env.MONGODB_URL;
-const uri = process.env.LOCAL_URL;
+const uri = process.env.MONGODB_URI;
 
 class DBClient {
     constructor() {
