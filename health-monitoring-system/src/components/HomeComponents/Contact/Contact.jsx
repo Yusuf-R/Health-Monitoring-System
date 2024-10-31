@@ -1,3 +1,4 @@
+// Updated Contact.jsx with escaped quotes
 'use client';
 import React from 'react';
 import Box from '@mui/material/Box';
@@ -19,8 +20,6 @@ const borderAnimation = keyframes`
 
 function Contact() {
   const theme = useTheme();
-
-  // Breakpoints
   const xSmall = useMediaQuery(theme.breakpoints.down('xs'));
   const small = useMediaQuery(theme.breakpoints.down('sm'));
   const medium = useMediaQuery(theme.breakpoints.down('md'));
@@ -45,10 +44,10 @@ function Contact() {
         transition={{ duration: 1 }}
       >
         <Typography variant="h1" sx={{ fontWeight: 'bold', marginBottom: '40px', fontSize: fontSizeH1 }}>
-          Get in Touch
+          Contact Us
         </Typography>
         <Typography variant="body1" sx={{ fontSize: fontSizeBody, marginBottom: '40px' }}>
-          Have a question about the Community Health Monitor? We're here to help. Reach out to us anytime!
+          We&apos;d love to hear from you. Whether you have a question or need assistance, feel free to reach out!
         </Typography>
       </motion.div>
 
@@ -66,7 +65,7 @@ function Contact() {
             gap: '20px',
             alignItems: 'center',
             padding: '30px',
-            background: 'linear-gradient(to right, #004e92, #000428)',
+            background: 'linear-gradient(to right, #000428, #004e92)',
             borderRadius: '10px',
             boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
             border: '2px solid transparent',
@@ -76,7 +75,7 @@ function Contact() {
           }}
         >
           <TextField
-            label="Full Name"
+            label="Name"
             variant="outlined"
             sx={{
               width: '100%',
@@ -86,7 +85,7 @@ function Contact() {
             }}
           />
           <TextField
-            label="Email Address"
+            label="Email"
             variant="outlined"
             sx={{
               width: '100%',
@@ -96,7 +95,7 @@ function Contact() {
             }}
           />
           <TextField
-            label="Your Message"
+            label="Message"
             multiline
             rows={4}
             variant="outlined"
@@ -141,10 +140,10 @@ function Contact() {
             marginTop: '40px',
           }}
         >
-          <Typography variant="h5" sx={{ marginBottom: '20px' }}>Community Health Monitor Contact</Typography>
+          <Typography variant="h5" sx={{ marginBottom: '20px' }}>Contact Information</Typography>
           <Typography variant="body1" sx={{ fontSize: fontSizeBody }}>Email: support@communityhealthmonitor.com</Typography>
-          <Typography variant="body1" sx={{ fontSize: fontSizeBody }}>Phone: +234 7068518999</Typography>
-          <Typography variant="body1" sx={{ fontSize: fontSizeBody }}>Address: 123 Community Health Blvd, Health City, Nigeria</Typography>
+          <Typography variant="body1" sx={{ fontSize: fontSizeBody }}>Phone: +234 706 851 8999</Typography>
+          <Typography variant="body1" sx={{ fontSize: fontSizeBody }}>Address: 123 Healthway Ave, Tech City, Nigeria</Typography>
         </Box>
       </motion.div>
     </Box>
