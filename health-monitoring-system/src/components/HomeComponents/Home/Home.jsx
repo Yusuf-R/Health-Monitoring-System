@@ -1,17 +1,199 @@
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
+"use client";
+import { useState } from "react";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button";
+import Grid from "@mui/material/Grid";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import Container from "@mui/material/Container";
+import IconButton from "@mui/material/IconButton";
+import Divider from "@mui/material/Divider";
+import SharedDrawer from "@/components/Custom/SharedDrawer/SharedDrawer";
+import { useTheme, keyframes } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ExploreIcon from "@mui/icons-material/Explore";
 
+// Animation for border effect
+const cardBorderAnimation = keyframes`
+  0% { border-color: #46F0F9; }
+  25% { border-color: #34C0D9; }
+  50% { border-color: #F34F00; }
+  75% { border-color: #8D3BFF; }
+  100% { border-color: #46F0F9; }
+`;
 
-function Home() {
-    return (
-        <>
-            <Box>
-                <Typography>
-                    Hi Welcome
-                </Typography>
-            </Box>
-        </>
-    )
-}
+// Button animation
+const buttonBorderAnimation = keyframes`
+  0% { border-color: #46F0F9; }
+  25% { border-color: #34C0D9; }
+  50% { border-color: #F34F00; }
+  75% { border-color: #8D3BFF; }
+  100% { border-color: #46F0F9; }
+`;
+
+const Home = () => {
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  const toggleDrawer = (open) => () => {
+    setIsDrawerOpen(open);
+  };
+
+  return (
+    <Box
+      sx={{
+        width: "100%",
+        minHeight: "100vh",
+        background: "linear-gradient(to right, #0f0c29, #302b63, #24243e)",
+        color: "white",
+        paddingBottom: "100px",
+      }}
+    >
+      {/* Hero Section */}
+      <Container maxWidth="lg" sx={{ textAlign: "center", padding: "80px 0" }}>
+        <Typography
+          variant="h1"
+          sx={{
+            fontSize: isSmallScreen ? "36px" : "64px",
+            fontWeight: "bold",
+            mb: 2,
+            backgroundImage: 'linear-gradient(90deg, #ff0000, #00ff00, #0000ff, #ff0000)',
+            backgroundSize: '300% 100%',
+            backgroundClip: 'text',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            animation: `${cardBorderAnimation} 8s ease infinite`,
+          }}
+        >
+          Welcome to Community Health Monitor
+        </Typography>
+        <Typography
+          variant="subtitle1"
+          sx={{
+            fontSize: isSmallScreen ? "18px" : "24px",
+            maxWidth: "800px",
+            margin: "0 auto",
+            color: "#FFF",
+            mb: 4,
+          }}
+        >
+          Empowering individuals and communities with insights and proactive health measures. Track, connect, and stay informed.
+        </Typography>
+        <Button
+          variant="contained"
+          sx={{
+            fontSize: "18px",
+            padding: "12px 24px",
+            mt: 4,
+            animation: `${buttonBorderAnimation} 6s linear infinite`,
+          }}
+          endIcon={<ExploreIcon />}
+          onClick={toggleDrawer(true)}
+        >
+          Discover More
+        </Button>
+      </Container>
+
+      {/* Key Features Section */}
+      <Container maxWidth="lg" sx={{ py: 8 }}>
+        <Grid container spacing={4}>
+          {[
+            {
+              title: "Real-Time Health Tracking",
+              description: "Monitor your health daily with personalized metrics and discover patterns to stay ahead.",
+            },
+            {
+              title: "Community Insights",
+              description: "Local health trends and updates at your fingertips, keeping you connected and informed.",
+            },
+            {
+              title: "Mentorship Programs",
+              description: "Get support from community mentors, ensuring you never feel alone in your journey.",
+            },
+            {
+              title: "Instant Alerts",
+              description: "Receive instant notifications on health advisories, outbreaks, and safety tips in your area.",
+            },
+          ].map((item, index) => (
+            <Grid item xs={12} sm={6} md={3} key={index}>
+              <Card
+                sx={{
+                  minHeight: "250px",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  textAlign: "center",
+                  animation: `${cardBorderAnimation} 4s linear infinite`,
+                  padding: "20px",
+                }}
+              >
+                <CardContent>
+                  <Typography variant="h5" sx={{ fontWeight: "bold", mb: 1 }}>
+                    {item.title}
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: "#bbb" }}>
+                    {item.description}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+
+      {/* Additional Information Section */}
+      <Container maxWidth="lg" sx={{ py: 8 }}>
+        <Box sx={{ textAlign: "center", mb: 4 }}>
+          <Typography variant="h4" sx={{ fontWeight: "bold", mb: 2 }}>
+            Why Choose Community Health Monitor?
+          </Typography>
+          <Typography variant="body1" sx={{ color: "#ccc", maxWidth: "700px", mx: "auto" }}>
+            Our platform is designed to put your health at the center. From monitoring tools to community-driven insights, we ensure you have everything you need to stay informed and proactive.
+          </Typography>
+        </Box>
+        <Grid container spacing={4}>
+          {[
+            {
+              title: "Personalized Insights",
+              detail: "Gain insights tailored to your health journey, tracking both personal and community health trends.",
+            },
+            {
+              title: "Trusted Data",
+              detail: "With anonymized, accurate data, feel confident that you’re making informed decisions for yourself and your family.",
+            },
+            {
+              title: "Proactive Wellness",
+              detail: "Alerts and real-time updates help you make choices that keep you healthy and safe.",
+            },
+          ].map((item, index) => (
+            <Grid item xs={12} sm={6} md={4} key={index}>
+              <Card
+                sx={{
+                  textAlign: "center",
+                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                  padding: "20px",
+                  minHeight: "200px",
+                }}
+              >
+                <CardContent>
+                  <Typography variant="h6" sx={{ fontWeight: "bold", mb: 1 }}>
+                    {item.title}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: "#bbb" }}>
+                    {item.detail}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+
+    </Box>
+  );
+};
 
 export default Home;
