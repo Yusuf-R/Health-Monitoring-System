@@ -24,7 +24,7 @@ function Services() {
   const medium = useMediaQuery(theme.breakpoints.down('md'));
 
   // Responsive font sizes
-  const fontSizeH1 = xSmall ? '32px' : small ? '40px' : '48px';
+  const fontSizeH1 = xSmall ? '28px' : small ? '36px' : '48px';
   const fontSizeBody = xSmall ? '14px' : small ? '16px' : '18px';
 
   return (
@@ -34,6 +34,7 @@ function Services() {
         margin: '0 auto',
         textAlign: 'center',
         padding: '0 20px',
+        color: 'white',
       }}
     >
       {/* Services Heading */}
@@ -43,10 +44,10 @@ function Services() {
         transition={{ duration: 1 }}
       >
         <Typography variant="h1" sx={{ fontWeight: 'bold', marginBottom: '40px', fontSize: fontSizeH1 }}>
-          Our Services
+          Our Core Services
         </Typography>
         <Typography variant="body1" sx={{ fontSize: fontSizeBody, marginBottom: '40px' }}>
-          Discover the range of services Naviroq offers to meet your transportation and logistics needs.
+          Discover the impactful features of the Community Health Monitor that empower individuals and communities alike.
         </Typography>
       </motion.div>
 
@@ -64,9 +65,22 @@ function Services() {
           }}
         >
           {[
-            { title: 'Ride-Hailing', description: 'Reliable rides at your fingertips, whenever you need them.' },
-            { title: 'Logistics', description: 'Seamlessly delivering goods from point A to B with ease.' },
-            { title: 'On-Demand Delivery', description: 'Fast, efficient, and secure delivery service for all your needs.' },
+            { 
+              title: 'Health Tracking', 
+              description: 'Track daily health symptoms, physical activity, and wellness trends with ease. Empower yourself with insights into your own health patterns and make informed decisions.' 
+            },
+            { 
+              title: 'Mentorship Support', 
+              description: 'Receive dedicated support during isolation or illness. Our mentors provide daily check-ins, reminders, and guidance to ensure no one is alone in their health journey.' 
+            },
+            { 
+              title: 'Community Health Insights', 
+              description: 'Local health authorities access anonymized health data to monitor trends and respond to outbreaks. Together, we keep communities safer and more informed.' 
+            },
+            { 
+              title: 'Real-Time Alerts', 
+              description: 'Stay updated on potential health risks in your area with real-time alerts. Make proactive choices to protect yourself and those around you.' 
+            },
           ].map(({ title, description }) => (
             <Box
               key={title}
@@ -79,6 +93,7 @@ function Services() {
                 animation: `${borderAnimation} 4s linear infinite`,
                 backgroundColor: 'rgba(30, 30, 30, 0.9)',
                 color: 'white',
+                boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.3)',
               }}
             >
               <Typography variant="h5" sx={{ fontWeight: 'bold', marginBottom: '10px', fontSize: fontSizeBody }}>

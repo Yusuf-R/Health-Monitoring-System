@@ -8,6 +8,8 @@ import { motion, useAnimation } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { useTheme, keyframes } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { useRouter } from 'next/navigation';
+
 
 // Animation for Health Monitoring System text border
 const fluidTextAnimation = keyframes`
@@ -29,6 +31,7 @@ const borderAnimation = keyframes`
 function Section({ children, delay = 0, bgColor = 'rgba(0, 0, 0, 0.7)', textColor = 'white' }) {
   const controls = useAnimation();
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
+  const router = useRouter();
 
   React.useEffect(() => {
     if (inView) {
@@ -199,8 +202,9 @@ function About() {
 
       {/* Call to Action Section */}
       <Section bgColor="rgba(50, 50, 50, 1)">
-        <Button
+        <Button onClick={()=>router.push('/get-started')}
           variant="contained"
+    
           sx={{
             backgroundColor: '#46F0F9',
             color: '#0E1E1E',
@@ -211,6 +215,7 @@ function About() {
               backgroundColor: '#34C0D9',
             },
           }}
+        
         >
           Explore Health Monitor
         </Button>

@@ -14,7 +14,6 @@ import Stack from '@mui/material/Stack';
 import MenuIcon from '@mui/icons-material/Menu';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
-import SharedDrawer from '@/components/Custom/SharedDrawer/SharedDrawer';
 import { useRouter } from 'next/navigation';
 
 function Nav() {

@@ -7,12 +7,8 @@ import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Container from "@mui/material/Container";
-import IconButton from "@mui/material/IconButton";
-import Divider from "@mui/material/Divider";
-import SharedDrawer from "@/components/Custom/SharedDrawer/SharedDrawer";
 import { useTheme, keyframes } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExploreIcon from "@mui/icons-material/Explore";
 
 // Animation for border effect
@@ -36,11 +32,10 @@ const buttonBorderAnimation = keyframes`
 const Home = () => {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
-  const toggleDrawer = (open) => () => {
-    setIsDrawerOpen(open);
-  };
+  
+    const GetStarted = () => {
+        router.push('/get-started');
+    }
 
   return (
     <Box
@@ -91,9 +86,9 @@ const Home = () => {
             animation: `${buttonBorderAnimation} 6s linear infinite`,
           }}
           endIcon={<ExploreIcon />}
-          onClick={toggleDrawer(true)}
+         onClick={GetStarted}
         >
-          Discover More
+          Get Started
         </Button>
       </Container>
 
@@ -175,7 +170,8 @@ const Home = () => {
                   textAlign: "center",
                   backgroundColor: "rgba(255, 255, 255, 0.1)",
                   padding: "20px",
-                  minHeight: "200px",
+                          minHeight: "200px",
+                  color: "#FFF",
                 }}
               >
                 <CardContent>
@@ -192,6 +188,13 @@ const Home = () => {
         </Grid>
       </Container>
 
+          {/* Footer Section */}
+          {/* Footer */}
+      <Box sx={{ py: 6, textAlign: "center", background: "linear-gradient(135deg, #4b6cb7, #182848)" }}>
+        <Typography variant="h6" sx={{ color: "#ffeb3b", mb: 2 }}>Community Health Monitoring System</Typography>
+        <Typography variant="body2" sx={{ color: "#FFF" }}>© 2023 Health Monitoring System. All rights reserved.</Typography>
+        <Typography variant="body2" sx={{ color: "#FFF" }}>Privacy Policy | Terms of Service</Typography>
+      </Box>
     </Box>
   );
 };
