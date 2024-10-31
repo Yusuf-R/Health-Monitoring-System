@@ -31,7 +31,7 @@ const borderAnimation = keyframes`
 function Section({ children, delay = 0, bgColor = 'rgba(0, 0, 0, 0.7)', textColor = 'white' }) {
   const controls = useAnimation();
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
-  const router = useRouter();
+  
 
   React.useEffect(() => {
     if (inView) {
@@ -67,6 +67,7 @@ function Section({ children, delay = 0, bgColor = 'rgba(0, 0, 0, 0.7)', textColo
 
 function About() {
   const theme = useTheme();
+  const router = useRouter();
 
   // Breakpoints as defined
   const xSmall = useMediaQuery(theme.breakpoints.down('xs'));

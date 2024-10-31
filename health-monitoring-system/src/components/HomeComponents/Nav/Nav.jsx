@@ -71,7 +71,7 @@ function Nav() {
             }}
           />
           <Typography variant='h6' sx={{ color: 'white', fontWeight: 'bold', ml: 1 }}>
-            Helath Monitoring System
+            Health Monitoring System
           </Typography>
         </Box>
 

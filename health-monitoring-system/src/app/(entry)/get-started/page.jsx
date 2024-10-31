@@ -1,5 +1,6 @@
+import GetStarted from "@/components/HomeComponents/GetStarted/GetStarted";
 function getStarted() {
-    returrn(
+    return(
         <>
             <GetStarted/>
         </>
