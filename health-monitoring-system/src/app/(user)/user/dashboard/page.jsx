@@ -1,7 +1,8 @@
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 
-function HealthWorkerPage() {
+
+function UserHMSDashboard() {
     return (
         <>
             <Box sx={{ padding: '20px' }}>
@@ -10,8 +11,7 @@ function HealthWorkerPage() {
                 </Typography>
             </Box >
         </>
-    )
-
+    );
 }
 
-export default HealthWorkerPage;
+export default UserHMSDashboard;

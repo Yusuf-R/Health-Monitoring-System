@@ -24,7 +24,7 @@ function Services() {
   const medium = useMediaQuery(theme.breakpoints.down('md'));
 
   // Responsive font sizes
-  const fontSizeH1 = xSmall ? '28px' : small ? '36px' : '48px';
+  const fontSizeH1 = xSmall ? '18px' : small ? '22px' : '28px';
   const fontSizeBody = xSmall ? '14px' : small ? '16px' : '18px';
 
   return (
@@ -43,8 +43,8 @@ function Services() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1 }}
       >
-        <Typography variant="h1" sx={{ fontWeight: 'bold', marginBottom: '40px', fontSize: fontSizeH1 }}>
-          Our Core Services
+        <Typography variant="h1" sx={{ fontWeight: 'bold', marginBottom: '40px', marginTop: '40px', fontSize: fontSizeH1 }}>
+          CORE SERVICES
         </Typography>
         <Typography variant="body1" sx={{ fontSize: fontSizeBody, marginBottom: '40px' }}>
           Discover the impactful features of the Community Health Monitor that empower individuals and communities alike.

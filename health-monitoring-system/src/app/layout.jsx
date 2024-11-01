@@ -32,7 +32,8 @@ export default function RootLayout({ children }) {
           duration={2000}
           position="top-right"
           reverseOrder={false}
-          closeOnClick
+                    closeOnClick
+                    expand={true}
         />
             </body>
         </html>

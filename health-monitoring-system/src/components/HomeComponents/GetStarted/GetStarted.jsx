@@ -64,7 +64,7 @@ function GetStarted() {
         padding: '60px 20px',
         textAlign: 'center',
         color: 'white',
-        background: 'linear-gradient(to right, #004e92, #000428)',
+        // background: 'linear-gradient(to right, #004e92, #000428)',
       }}
     >
       {/* Introductory Heading and Text */}
@@ -84,7 +84,7 @@ function GetStarted() {
         sx={{
           display: 'flex',
           justifyContent: 'center',
-          gap: '20px',
+          gap: '150px',
           flexWrap: 'wrap',
           width: '100%',
           maxWidth: '1200px',
