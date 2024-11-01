@@ -10,7 +10,7 @@ import Container from "@mui/material/Container";
 import { useTheme, keyframes } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import ExploreIcon from "@mui/icons-material/Explore";
-
+import { useRouter } from "next/navigation";
 // Animation for border effect
 const cardBorderAnimation = keyframes`
   0% { border-color: #46F0F9; }
@@ -31,18 +31,15 @@ const buttonBorderAnimation = keyframes`
 
 const Home = () => {
   const theme = useTheme();
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+    const router = useRouter();
   
-    const GetStarted = () => {
-        router.push('/get-started');
-    }
-
   return (
     <Box
       sx={{
         width: "100%",
         minHeight: "100vh",
-        background: "linear-gradient(to right, #0f0c29, #302b63, #24243e)",
+        // background: "linear-gradient(to right, #0f0c29, #302b63, #24243e)",
         color: "white",
         paddingBottom: "100px",
       }}
@@ -86,7 +83,7 @@ const Home = () => {
             animation: `${buttonBorderAnimation} 6s linear infinite`,
           }}
           endIcon={<ExploreIcon />}
-         onClick={GetStarted}
+         onClick={()=>router.push('/get-started')}
         >
           Get Started
         </Button>

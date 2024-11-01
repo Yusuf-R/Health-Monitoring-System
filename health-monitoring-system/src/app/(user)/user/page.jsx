@@ -1,8 +1,16 @@
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+
+
 function UserHMS() {
     return (
-        <div>
-            <h1>User</h1>
-        </div>
+        <>
+            <Box sx={{ padding: '20px' }}>
+                <Typography variant="h3" sx={{ fontWeight: 'bold', color: '#FFF' }}>
+                    Under construction !!!
+                </Typography>
+            </Box >
+        </>
     );
 }
 

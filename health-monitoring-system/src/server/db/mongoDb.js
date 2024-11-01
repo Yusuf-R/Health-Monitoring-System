@@ -1,32 +1,54 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
-const uri = process.env.MONGODB_URI;
-
-class DBClient {
+class MongoDBClient {
     constructor() {
-        this.client = this.init();
+        this.isConnected = false;
     }
 
-    async init() {
-        delete this.client; // Forces this.client state update once init has been called
+    // Initialize MongoDB connection
+    async connect() {
+        if (this.isConnected) {
+            console.log("💡 Already connected to MongoDB 😁");
+            return;
+        }
+
+        const uri = process.env.MONGODB_URI;
+        if (!uri) {
+            console.error("👺 Error: Invalid/Missing environment variable MONGODB_URI 🚨");
+            throw new Error("Invalid/Missing environment variable MONGODB_URI");
+        }
+
         try {
-            // Access the Mongoose connection object only after it's returned by connect
-            return await mongoose.connect(uri);
+            const db = await mongoose.connect(uri);
+            this.isConnected = db.connections[0].readyState === 1;
+
+            if (this.isConnected) {
+                console.log("🚀 Successfully connected to MongoDB 🤩");
+            } else {
+                console.error("👺 Failed to connect to MongoDB 🚨");
+                throw new Error("Failed to connect to MongoDB");
+            }
         } catch (error) {
-            console.error('Error connecting to MongoDB:', error);
-            return undefined;
+            console.error("👺 Error connecting to MongoDB: 🚨", error.message);
+            throw error;
         }
     }
 
-    async isAlive() {
-        // Check if the Mongoose connection state is open
-        if (await this.client) {
-            return true;
+    // Check if the connection is alive
+    isAlive() {
+        return this.isConnected;
+    }
+
+    // Close the MongoDB connection
+    async close() {
+        if (this.isConnected) {
+            await mongoose.disconnect();
+            console.log("🔌 MongoDB connection closed");
+            this.isConnected = false;
         }
-        return false;
     }
 }
 
-const dbClient = new DBClient();
-
+// Export the MongoDBClient instance
+const dbClient = new MongoDBClient();
 export default dbClient;

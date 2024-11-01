@@ -9,14 +9,15 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 
 // Define background images for different routes
 const routeBackgrounds = {
-  '/home': '/pic1.svg',
-  '/about': '/bg-3.svg',
-  '/services': '/bg-4.svg',
-  '/contact': '/bg-5.svg',
-  '/auth/user': '/bg-8.svg',
-  '/auth/driver': '/bg-20.svg',
+  '/home': '/bg-3.svg',
+  '/about': '/pic5.svg',
+  '/services': '/bg-2.svg',
+  '/contact': '/bg-4.svg',
+  '/authorization/users': '/bg-4.svg',
+  '/authorization/health-workers': '/bg-4.svg',
   '/setpassword': '/bg-4.svg',
-  '/resetpassword': '/bg-4.svg',
+    '/resetpassword': '/bg-4.svg',
+    '/get-started': '/bg-4.svg',
 };
 
 function EntryLayout({ children }) {
@@ -59,7 +60,7 @@ function EntryLayout({ children }) {
           backgroundSize: 'cover', // Adjusted background size based on screen size
           backgroundPosition : 'center', // Adjusted position based on screen size
           backgroundAttachment: ultraWide ? 'fixed' : 'scroll', // Parallax effect on ultra-wide screens
-          opacity: 0.3, // Lower opacity for blur effect
+          opacity: 0.9, // Lower opacity for blur effect
           zIndex: -1,
           transition: 'background-image 0.5s ease-in-out', // Smooth background transition
         }}

@@ -25,7 +25,7 @@ function Contact() {
   const medium = useMediaQuery(theme.breakpoints.down('md'));
 
   // Responsive font sizes
-  const fontSizeH1 = xSmall ? '32px' : small ? '40px' : '48px';
+  const fontSizeH1 = xSmall ? '16px' : small ? '20px' : '24px';
   const fontSizeBody = xSmall ? '14px' : small ? '16px' : '18px';
 
   return (
@@ -34,7 +34,7 @@ function Contact() {
         maxWidth: '1200px',
         margin: '0 auto',
         textAlign: 'center',
-        padding: '0 20px',
+        padding: '20px',
       }}
     >
       {/* Contact Heading */}
@@ -43,12 +43,12 @@ function Contact() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1 }}
       >
-        <Typography variant="h1" sx={{ fontWeight: 'bold', marginBottom: '40px', fontSize: fontSizeH1 }}>
-          Contact Us
+        <Typography variant="h1" sx={{ fontWeight: 'bold', marginBottom: '40px', color: '#FFF',fontSize: fontSizeH1 }}>
+          CONTACT US
         </Typography>
-        <Typography variant="body1" sx={{ fontSize: fontSizeBody, marginBottom: '40px' }}>
+        <Typography variant="body1" sx={{ fontSize: fontSizeBody, color: '#FFF', marginBottom: '40px' }}>
           We&apos;d love to hear from you. Whether you have a question or need assistance, feel free to reach out!
-        </Typography>
+          </Typography>
       </motion.div>
 
       {/* Enhanced Contact Form */}

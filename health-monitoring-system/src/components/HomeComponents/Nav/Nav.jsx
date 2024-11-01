@@ -20,7 +20,6 @@ function Nav() {
   const router = useRouter();
   const theme = useTheme();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [isExploreOpen, setIsExploreOpen] = useState(false);  // State for Explore Drawer
 
   const xSmall = useMediaQuery(theme.breakpoints.down('xs'));
   const small = useMediaQuery(theme.breakpoints.down('sm'));
@@ -62,7 +61,7 @@ function Nav() {
         {/* Logo + text on the left */}
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <img
-            src='/logo.png'
+            src='/logo.svg'
             alt='logo'
             style={{
               width: xLarge ? '40px' : xxLarge ? '50px' : ultraWide ? '60px' : '30px',
@@ -118,7 +117,7 @@ function Nav() {
                 </List>
                 <Divider />
                 <List>
-                  <ListItem button onClick={toggleExplore(true)}>  {/* Toggle Explore Drawer */}
+                  <ListItem button onClick={()=>router.push('/get-started')}>  {/* Toggle Explore Drawer */}
                     <ListItemText primary='Explore' />
                   </ListItem>
                 </List>
