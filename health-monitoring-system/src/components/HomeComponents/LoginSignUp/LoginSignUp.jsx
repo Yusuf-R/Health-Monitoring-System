@@ -208,6 +208,7 @@ export default function LoginSignUp() {
                 justifyContent: 'center',
                 minHeight: '100vh',
                 color: '#FFF',
+                marginTop:'30px'
             }}
         >
             <Typography
@@ -225,7 +226,7 @@ export default function LoginSignUp() {
             >
                 Health Monitoring System 🩺
             </Typography>
-            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 5 }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 5 , textAlign:'center'}}>
                 To get started, please login or sign up.
             </Typography>
             {/* Toggle Slider */}

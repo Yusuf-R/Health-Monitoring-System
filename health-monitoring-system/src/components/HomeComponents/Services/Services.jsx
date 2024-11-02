@@ -33,7 +33,7 @@ function Services() {
         maxWidth: '1200px',
         margin: '0 auto',
         textAlign: 'center',
-        padding: '0 20px',
+        padding: '20px 20px',
         color: 'white',
       }}
     >
@@ -43,7 +43,7 @@ function Services() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1 }}
       >
-        <Typography variant="h1" sx={{ fontWeight: 'bold', marginBottom: '40px', marginTop: '40px', fontSize: fontSizeH1 }}>
+        <Typography variant="h1" sx={{ fontWeight: 'bold', marginBottom: '40px', marginTop: '10px', fontSize: fontSizeH1 }}>
           CORE SERVICES
         </Typography>
         <Typography variant="body1" sx={{ fontSize: fontSizeBody, marginBottom: '40px' }}>

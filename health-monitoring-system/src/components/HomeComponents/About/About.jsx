@@ -56,7 +56,7 @@ function Section({ children, delay = 0, bgColor = 'rgba(0, 0, 0, 0.7)', textColo
           backgroundColor: bgColor,
           color: textColor,
           borderRadius: '10px',
-          marginBottom: '60px',
+          marginBottom: '30px',
         }}
       >
         {children}
@@ -89,7 +89,8 @@ function About() {
         maxWidth: '1200px',
         margin: '0 auto',
         textAlign: 'center',
-        padding: '0 20px',
+        padding: '0px 20px',
+        paddingTop:'40px'
       }}
     >
       {/* Health Monitoring System Animated Section */}

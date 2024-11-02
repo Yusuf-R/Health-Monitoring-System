@@ -41,7 +41,7 @@ const Home = () => {
         minHeight: "100vh",
         // background: "linear-gradient(to right, #0f0c29, #302b63, #24243e)",
         color: "white",
-        paddingBottom: "100px",
+        // paddingBottom: "100px",
       }}
     >
       {/* Hero Section */}

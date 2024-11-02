@@ -111,14 +111,14 @@ function Nav() {
                 <List>
                   {navigationLinks.map((link) => (
                     <ListItem button key={link} onClick={toggleDrawer(false)}>
-                      <ListItemText primary={link} />
+                      <ListItemText primary={link}   onClick={() => window.location = `/${link.toLowerCase()}`}/>
                     </ListItem>
                   ))}
                 </List>
                 <Divider />
                 <List>
                   <ListItem button onClick={()=>router.push('/get-started')}>  {/* Toggle Explore Drawer */}
-                    <ListItemText primary='Explore' />
+                    <ListItemText primary='Explore'  onClick={GetStarted}/>
                   </ListItem>
                 </List>
               </Box>
