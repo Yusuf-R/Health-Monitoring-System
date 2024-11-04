@@ -72,7 +72,7 @@ const Home = () => {
             mb: 4,
           }}
         >
-          Empowering individuals and communities with insights and proactive health measures. Track, connect, and stay informed.
+          Empowering individuals and communities with intelligent insights and proactive health support. Track your health, connect with mentors, and stay informed with real-time updates for a healthier tomorrow.
         </Typography>
         <Button
           variant="contained"
@@ -95,15 +95,15 @@ const Home = () => {
           {[
             {
               title: "Real-Time Health Tracking",
-              description: "Monitor your health daily with personalized metrics and discover patterns to stay ahead.",
+              description: "Your daily health reports are compared against community trends, helping detect and alert users to health risks before they escalate.",
             },
             {
               title: "Community Insights",
-              description: "Local health trends and updates at your fingertips, keeping you connected and informed.",
+              description: "The app provides insights on resource needs — such as vaccines and hospital beds — based on trending health data across communities.",
             },
             {
               title: "Mentorship Programs",
-              description: "Get support from community mentors, ensuring you never feel alone in your journey.",
+              description: "AI-powered alerts notify mentors when data suggests a potential decline in a user's condition, enabling mentors to provide timely support.",
             },
             {
               title: "Instant Alerts",
@@ -126,7 +126,7 @@ const Home = () => {
                   <Typography variant="h5" sx={{ fontWeight: "bold", mb: 1 }}>
                     {item.title}
                   </Typography>
-                  <Typography variant="body1" sx={{ color: "#bbb" }}>
+                  <Typography variant="body1" sx={{ color: "#a9a9a9" }}>
                     {item.description}
                   </Typography>
                 </CardContent>
@@ -189,7 +189,7 @@ const Home = () => {
           {/* Footer */}
       <Box sx={{ py: 6, textAlign: "center", background: "linear-gradient(135deg, #4b6cb7, #182848)" }}>
         <Typography variant="h6" sx={{ color: "#ffeb3b", mb: 2 }}>Community Health Monitoring System</Typography>
-        <Typography variant="body2" sx={{ color: "#FFF" }}>© 2023 Health Monitoring System. All rights reserved.</Typography>
+        <Typography variant="body2" sx={{ color: "#FFF" }}>© 2024 Health Monitoring System. All rights reserved.</Typography>
         <Typography variant="body2" sx={{ color: "#FFF" }}>Privacy Policy | Terms of Service</Typography>
       </Box>
     </Box>
