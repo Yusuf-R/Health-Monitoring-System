@@ -26,9 +26,13 @@ export async function middleware(req) {
             req,
             secret: process.env.AUTH_SECRET,
             secureCookie: process.env.NODE_ENV === 'production', // Ensure secure cookies in production
+            debug: true,
         });
 
         if (!token) {
+            const headers = Object.fromEntries(req.headers.entries());
+            console.log('Request Headers:', headers);
+            console.log('Request Cookies:', req.cookies);
             console.error('No token found');
             return NextResponse.redirect(new URL('/', req.url));
         }
