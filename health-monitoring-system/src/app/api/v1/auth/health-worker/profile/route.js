@@ -11,12 +11,12 @@ export async function GET(request) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
-        const userProfile = await HealthWorkerController.Profile(userId);
-        if (userProfile instanceof Error) {
+        const healthWorkerProfile = await HealthWorkerController.Profile(userId);
+        if (healthWorkerProfile instanceof Error) {
             return NextResponse.json({ message: "User not found" }, { status: 404 });
         }
         return NextResponse.json(
-            userProfile,
+            healthWorkerProfile,
             {
                 status: 200
             }

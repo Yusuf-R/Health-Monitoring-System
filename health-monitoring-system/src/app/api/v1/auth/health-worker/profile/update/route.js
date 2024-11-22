@@ -15,11 +15,11 @@ export async function PATCH(req) {
         if (!obj) {
             return NextResponse.json({ message: "Invalid data" }, { status: 400 });
         }
-        const userProfile = await HealthWorkerController.UpdateProfile(userId, obj);
-        if (userProfile instanceof Error) {
+        const healthWorkerProfile = await HealthWorkerController.UpdateProfile(userId, obj);
+        if (healthWorkerProfile instanceof Error) {
             return NextResponse.json({ message: "Failed to update location" }, { status: 400 });
         }
-        return NextResponse.json(userProfile, { status: 201 });
+        return NextResponse.json(healthWorkerProfile, { status: 201 });
     }
     catch (error) {
         console.error(error);

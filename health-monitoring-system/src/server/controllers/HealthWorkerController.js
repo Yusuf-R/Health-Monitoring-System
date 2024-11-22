@@ -7,7 +7,7 @@ import mongoose from "mongoose";
 import {setLocationValidator} from "@/validators/locationValidator";
 
 const {ObjectId} = mongoose.Types;
-const {User} = await getCareBaseModels();
+const { HealthWorker } = await getCareBaseModels();
 
 class HealthWorkerController {
 
@@ -20,27 +20,30 @@ class HealthWorkerController {
 
             // Validate the healthWorker input
             const {success, data} = signUpValidator.safeParse(decryptedData);
-            if (!success) throw new Error("Validation failed");
+            if (!success) {
+              return new Error("Validation failed");
+            }
 
             const {email, password} = data;
 
             // Check if healthWorker already exists
-            const existingUser = await User.findOne({email}).select("+password");
-            if (existingUser) throw new Error("User already exists");
+            const existingUser = await HealthWorker.findOne({email}).select("+password");
+            if (existingUser) {
+              return new Error("HealthWorker already exists");
+            }
 
             // Hash the password before saving the healthWorker
             const hashedPassword = await AuthController.hashPassword(password);
 
             // Create a new healthWorker
-            const newUser = await User.create({
+            const newUser = await HealthWorker.create({
                 email,
                 password: hashedPassword,
             });
-
             return newUser; // Return the newly created healthWorker
         } catch (error) {
             console.error("Error in RegisterNew:", error.message);
-            throw new Error('User registration failed');
+            throw new Error('HealthWorker registration failed');
         } finally {
             // disconnect db
             await dbClient.close();
@@ -56,22 +59,28 @@ class HealthWorkerController {
 
             // Validate the healthWorker input
             const {success, data} = loginValidator.safeParse(decryptedData);
-            if (!success) throw new Error("Login-Validation failed");
+            if (!success) {
+              return new Error("Login-Validation failed");
+            }
 
             const {email, password} = data;
 
             // Find the healthWorker by email
-            const healthWorker = await User.findOne({email}).select("+password");
-            if (!healthWorker) throw new Error("User not found");
+            const healthWorker = await HealthWorker.findOne({email}).select("+password");
+            if (!healthWorker) {
+              return new Error("HealthWorker not found");
+            }
 
             // Check if the password is correct
             const isPasswordValid = await AuthController.comparePassword(password, healthWorker.password);
-            if (!isPasswordValid) throw new Error("Invalid credentials");
+            if (!isPasswordValid) {
+              return new Error("Invalid credentials");
+            }
 
             return healthWorker; // Return the healthWorker
         } catch (error) {
             console.error("Error in Login:", error.message);
-            throw new Error('User login failed');
+            throw new Error('HealthWorker login failed');
         } finally {
             // disconnect db
             await dbClient.close();
@@ -83,16 +92,18 @@ class HealthWorkerController {
         try {
             await dbClient.connect();
             // Fetch the healthWorker profile from the database
-            const userProfile = await User.findById(mongoose.Types.ObjectId.createFromHexString(userId));
-            if (!userProfile) {
-                throw new Error("User not found");
+            const healthWorkerProfile = await HealthWorker.findById(mongoose.Types.ObjectId.createFromHexString(userId));
+            if (!healthWorkerProfile) {
+                return new Error("HealthWorker not found");
             }
             // Close the database connection
-            await dbClient.close();
-            return userProfile;
+            return healthWorkerProfile;
         } catch (error) {
             console.error("Error in Logout:", error.message);
-            throw new Error('User logout failed');
+            throw new Error('HealthWorker logout failed');
+        } finally {
+            // disconnect db
+            await dbClient.close();
         }
     }
 
@@ -102,14 +113,18 @@ class HealthWorkerController {
             await dbClient.connect();
 
             // Check if userId is a valid ObjectId
-            if (!ObjectId.isValid(userId)) throw new Error("Invalid healthWorker ID format");
+            if (!ObjectId.isValid(userId)) {
+              return new Error("Invalid healthWorker ID format");
+            }
 
-            const userProfile = await User.findById(userId);
-            if (!userProfile) throw new Error("User profile not found");
-            return userProfile;
+            const healthWorkerProfile = await HealthWorker.findById(userId);
+            if (!healthWorkerProfile) {
+              return new Error("HealthWorker profile not found");
+            }
+            return healthWorkerProfile;
         } catch (error) {
             console.error("Error in Profile:", error.message);
-            throw new Error('User profile retrieval failed');
+            throw new Error('HealthWorker profile retrieval failed');
         } finally {
             // disconnect db
             await dbClient.close();
@@ -126,9 +141,9 @@ class HealthWorkerController {
             }
 
             // Fetch the healthWorker's current profile
-            const userProfile = await User.findById(userId);
-            if (!userProfile) {
-                return new Error("User not found");
+            const healthWorkerProfile = await HealthWorker.findById(userId);
+            if (!healthWorkerProfile) {
+                return new Error("HealthWorker not found");
             }
 
             // Validate input data using a Zod schema
@@ -138,23 +153,23 @@ class HealthWorkerController {
             }
 
             // Merge the validated input with the existing profile
-            Object.assign(userProfile, data);
+            Object.assign(healthWorkerProfile, data);
 
             // Add missing fields based on the updated schema
-            User.schema.eachPath((path) => {
-                if (!userProfile[path] && User.schema.paths[path].defaultValue !== undefined) {
+            HealthWorker.schema.eachPath((path) => {
+                if (!healthWorkerProfile[path] && HealthWorker.schema.paths[path].defaultValue !== undefined) {
                     // Add missing fields with their default values
-                    userProfile[path] = User.schema.paths[path].defaultValue;
+                    healthWorkerProfile[path] = HealthWorker.schema.paths[path].defaultValue;
                 }
             });
 
             // Save the updated profile
-            await userProfile.save();
+            await healthWorkerProfile.save();
 
-            return userProfile;
+            return healthWorkerProfile;
         } catch (error) {
             console.error("Error in UpdateProfile:", error.message);
-            throw new Error('User profile update failed');
+            throw new Error('HealthWorker profile update failed');
         } finally {
             // Disconnect from the database
             await dbClient.close();
@@ -165,16 +180,15 @@ class HealthWorkerController {
         try {
             // Fetch the healthWorker profile from the database
             await dbClient.connect();
-            const userProfile = await User.findById(mongoose.Types.ObjectId.createFromHexString(userId));
-            if (!userProfile) {
-                return new Error("User not found");
+            const healthWorkerProfile = await HealthWorker.findById(mongoose.Types.ObjectId.createFromHexString(userId));
+            if (!healthWorkerProfile) {
+                return new Error("HealthWorker not found");
             }
             // validate the location data
             const {success, data} = setLocationValidator.safeParse(obj);
             if (!success) {
                 return new Error("Location validation failed");
             }
-            console.log({data});
             const newAddress = {
                 category: data.category,
                 latitude: data.locationCoords.latitude,
@@ -182,9 +196,9 @@ class HealthWorkerController {
                 locationName: data.locationName,
                 description: data.description || "",
             };
-            userProfile.geoLocation.push(newAddress);
-            await userProfile.save();
-            return userProfile;
+            healthWorkerProfile.geoLocation.push(newAddress);
+            await healthWorkerProfile.save();
+            return healthWorkerProfile;
 
         } catch (error) {
             console.error("Error in SetLocation:", error.message);
@@ -202,33 +216,36 @@ class HealthWorkerController {
 
             // Convert userId and addressId to ObjectId if they are strings
             // Fetch the healthWorker profile using the userId
-            const userProfile = await User.findById(mongoose.Types.ObjectId.createFromHexString(userId));
-            if (!userProfile) {
-                throw new Error("User not found");
+            const healthWorkerProfile = await HealthWorker.findById(mongoose.Types.ObjectId.createFromHexString(userId));
+            if (!healthWorkerProfile) {
+                return new Error("HealthWorker not found");
             }
 
             // Find the index of the address with the matching _id
-            const geoIndex = userProfile.geoLocation.findIndex(
+            const geoIndex = healthWorkerProfile.geoLocation.findIndex(
                 (address) => address._id.equals(mongoose.Types.ObjectId.createFromHexString(addressId))  // Use `equals` to compare ObjectIds
             );
 
             if (geoIndex === -1) {
-                throw new Error("Address not found");
+                return new Error("Address not found");
             }
 
             // Remove the address from the geoLocation array
-            userProfile.geoLocation.splice(geoIndex, 1);
+            healthWorkerProfile.geoLocation.splice(geoIndex, 1);
 
             // Save the updated profile
-            await userProfile.save();
+            await healthWorkerProfile.save();
 
             // Close the database connection
             await dbClient.close();
 
-            return userProfile;
+            return healthWorkerProfile;
         } catch (error) {
             console.error("Error in DeleteLocation:", error.message);
             throw new Error("Delete location failed");
+        } finally {
+            // disconnect db
+            await dbClient.close();
         }
     }
 
@@ -236,40 +253,36 @@ class HealthWorkerController {
         try {
             // Connect to the database
             await dbClient.connect();
-            console.log({obj});
 
             // Convert userId and addressId to ObjectId if they are strings
             // Fetch the healthWorker profile using the userId
-            const userProfile = await User.findById(mongoose.Types.ObjectId.createFromHexString(userId));
-            if (!userProfile) {
-                throw new Error("User not found");
+            const healthWorkerProfile = await HealthWorker.findById(mongoose.Types.ObjectId.createFromHexString(userId));
+            if (!healthWorkerProfile) {
+                return new Error("HealthWorker not found");
             }
-
-            console.log({obj});
-
             // Find the index of the address with the matching _id
-            const geoIndex = userProfile.geoLocation.findIndex(
+            const geoIndex = healthWorkerProfile.geoLocation.findIndex(
                 (address) => address._id.equals(mongoose.Types.ObjectId.createFromHexString(obj._id))  // Use `equals` to compare ObjectIds
             );
 
             if (geoIndex === -1) {
-                throw new Error("Address not found");
+                return new Error("Address not found");
             }
 
             // Update the address fields
-            userProfile.geoLocation[geoIndex].category = obj.category;
-            userProfile.geoLocation[geoIndex].latitude = obj.locationCoords.latitude;
-            userProfile.geoLocation[geoIndex].longitude = obj.locationCoords.longitude;
-            userProfile.geoLocation[geoIndex].locationName = obj.locationName || "";
-            userProfile.geoLocation[geoIndex].description = obj.description || "";
+            healthWorkerProfile.geoLocation[geoIndex].category = obj.category;
+            healthWorkerProfile.geoLocation[geoIndex].latitude = obj.locationCoords.latitude;
+            healthWorkerProfile.geoLocation[geoIndex].longitude = obj.locationCoords.longitude;
+            healthWorkerProfile.geoLocation[geoIndex].locationName = obj.locationName || "";
+            healthWorkerProfile.geoLocation[geoIndex].description = obj.description || "";
 
             // Save the updated profile
-            await userProfile.save();
+            await healthWorkerProfile.save();
 
             // Close the database connection
             await dbClient.close();
 
-            return userProfile;
+            return healthWorkerProfile;
         } catch (error) {
             console.error("Error in updateLocation:", error.message);
             throw new Error("Update location failed");
@@ -282,20 +295,20 @@ class HealthWorkerController {
             await dbClient.connect();
 
             // Fetch the healthWorker profile using the userId
-            const userProfile = await User.findById(mongoose.Types.ObjectId.createFromHexString(userId));
-            if (!userProfile) {
-                return new Error("User not found");
+            const healthWorkerProfile = await HealthWorker.findById(mongoose.Types.ObjectId.createFromHexString(userId));
+            if (!healthWorkerProfile) {
+                return new Error("HealthWorker not found");
             }
-            console.log("userProfile", userProfile);
+            console.log("healthWorkerProfile", healthWorkerProfile);
             console.log("url", url);
 
             // Update the avatar URL
-            userProfile.avatar = url;
+            healthWorkerProfile.avatar = url;
 
             // Save the updated profile
-            await userProfile.save();
+            await healthWorkerProfile.save();
 
-            return userProfile;
+            return healthWorkerProfile;
         } catch (error) {
             console.error("Error in UpdateAvatar:", error.message);
             throw new Error("Update avatar failed");

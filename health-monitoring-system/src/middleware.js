@@ -17,7 +17,6 @@ export async function middleware(req) {
 
         // Allow public routes to proceed without token validation
         if (publicRoutes.some((route) => pathname.includes(route))) {
-            console.log(`Public route accessed: ${pathname}`);
             return NextResponse.next();
         }
 
@@ -30,7 +29,6 @@ export async function middleware(req) {
                 process.env.NODE_ENV === 'production'
                     ? '__Secure-next-auth.session-token'
                     : 'next-auth.session-token',
-            debug: true,
         });
 
         if (!token) {
@@ -38,7 +36,6 @@ export async function middleware(req) {
             return NextResponse.redirect(new URL('/', req.url));
         }
 
-        console.log('Token retrieved:', token);
         const userRole = token.role;
 
         // Role-based access logic for frontend paths
@@ -58,7 +55,6 @@ export async function middleware(req) {
             console.warn(`Access denied for Role: ${userRole} on Path: ${pathname}`);
             return NextResponse.redirect(new URL('/', req.url));
         }
-
         // Allow access to protected API routes
         console.log(`Protected API route accessed: ${pathname} by role: ${userRole}`);
         return NextResponse.next();
