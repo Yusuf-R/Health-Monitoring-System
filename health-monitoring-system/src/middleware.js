@@ -40,6 +40,7 @@ export async function middleware(req) {
             console.error('No token found');
             return NextResponse.redirect(new URL('/', req.url));
         }
+        console.log({token});
 
         const userRole = token.role;
         console.log(`Pathname: ${pathname}, Role: ${userRole}`);
