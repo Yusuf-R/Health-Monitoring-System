@@ -23,7 +23,7 @@ class AuthController {
             throw new Error("Password comparison failed");
         }
     }
-    // Function to decrypt data (AES-GCM decryption) for Password and login operations
+    // Function to decrypt data (AES-GCM decryption) for Password and login operations adn userID
     static async decryptedCredentials(encryptedData) {
         const rawKey = process.env.DECRYPT_PRIVATE_KEY;
         try {
@@ -57,6 +57,46 @@ class AuthController {
             }
         });
     }
+
+
+      // Headless check
+      static async headlessCheck(request) {
+        try {
+            const authHeader = request.headers.get("Authorization");
+            if (!authHeader) {
+                throw new Error("No Authorization header found");
+            }
+            const encryptedId = authHeader.split(" ")[1]
+            if (!encryptedId) {
+                throw new Error("Invalid Authorization header");
+            }
+            const userId = await AuthController.decryptedCredentials(encryptedId);
+            if (!userId) {
+                throw new Error("Invalid user ID");
+            }
+            return userId;
+        } catch (error) {
+            console.error(error);
+            throw new Error("Unauthorized");
+        }
+
+      }
+    
+     // Load private key from environment (ensure open ssl 64 rand)
+     static async decryptData(encryptedData, nonce, privateKeyBase64, publicKeyBase64) {
+        const privateKey = util.decodeBase64(privateKeyBase64);
+        const publicKey = util.decodeBase64(publicKeyBase64);
+        const message = util.decodeBase64(encryptedData);
+        const nonceUint8 = util.decodeBase64(nonce);
+
+        const decryptedMessage = nacl.box.open(message, nonceUint8, publicKey, privateKey);
+        if (!decryptedMessage) throw new Error("Decryption failed.");
+
+        return JSON.parse(util.encodeUTF8(decryptedMessage));
+    }
+  
+
+
 
 }
 

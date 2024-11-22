@@ -11,7 +11,7 @@ import { motion } from 'framer-motion';
 const backgroundImages = {
   user: 'url("/pic6.svg")',
   healthWorker: 'url("/pic3.svg")',
-  stakeholder: 'url("/pic5.svg")',
+  stakeholder: 'url("/pic6.png")',
 };
 
 // Animation for the button hover effect
@@ -37,19 +37,19 @@ function GetStarted() {
       title: 'User',
       description: 'Discover health insights, track wellness, and connect with mentors.',
       backgroundImage: backgroundImages.user,
-      route: '/authorization/users',
+      route: '/authorization/user',
     },
     {
       title: 'Health Worker',
       description: 'Access community health data, provide mentorship, and assist in health monitoring.',
       backgroundImage: backgroundImages.healthWorker,
-      route: '/authorization/health-workers',
+      route: '/authorization/health-worker',
     },
     {
       title: 'Stakeholder',
       description: 'Analyze community health trends and contribute to informed decision-making.',
       backgroundImage: backgroundImages.stakeholder,
-      route: '/authorization/stakeholders',
+      route: '/authorization/stakeholder',
     },
   ];
 
