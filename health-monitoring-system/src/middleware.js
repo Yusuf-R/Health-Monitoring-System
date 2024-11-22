@@ -3,21 +3,37 @@ import { NextResponse } from 'next/server';
 
 export async function middleware(req) {
     try {
+        const { pathname } = req.nextUrl;
+
+        // Define public routes that don't require authentication
+        const publicRoutes = [
+            '/api/v1/user/register',
+            '/api/v1/user/login',
+            '/api/v1/health-worker/register',
+            '/api/v1/health-worker/login',
+            '/api/v1/stakeholder/register',
+            '/api/v1/stakeholder/login',
+        ];
+
+        // Allow public routes to proceed without token validation
+        if (publicRoutes.some((route) => pathname.startsWith(route))) {
+            console.log(`Public route accessed: ${pathname}`);
+            return NextResponse.next();
+        }
+
+        // Check token for protected routes
         const token = await getToken({
             req,
             secret: process.env.AUTH_SECRET,
             secureCookie: process.env.NODE_ENV === 'production', // Ensure secure cookies in production
-            debug: true, // Enable detailed logs for debugging
         });
 
-        // Redirect to login if no token is found
         if (!token) {
             console.error('No token found');
             return NextResponse.redirect(new URL('/', req.url));
         }
 
         const userRole = token.role;
-        const { pathname } = req.nextUrl;
         console.log(`Pathname: ${pathname}, Role: ${userRole}`);
 
         // Role-based authorization logic
@@ -28,13 +44,11 @@ export async function middleware(req) {
             StakeHolder: '/stakeholder',
         };
 
-        // Check if the role matches the path
         const expectedPath = rolePaths[userRole];
         if (expectedPath && pathname.startsWith(expectedPath)) {
             return NextResponse.next();
         }
 
-        // If role doesn't match, redirect to the homepage
         console.warn(`Access denied for Role: ${userRole} on Path: ${pathname}`);
         return NextResponse.redirect(new URL('/', req.url));
     } catch (error) {
@@ -44,5 +58,5 @@ export async function middleware(req) {
 }
 
 export const config = {
-    matcher: ['/user/:path*', '/health-worker/:path*', '/admin/:path*', '/stakeholder/:path*'], // Match protected routes
+    matcher: ['/api/v1/:path*', '/user/:path*', '/health-worker/:path*', '/admin/:path*', '/stakeholder/:path*'], // Match protected routes
 };
