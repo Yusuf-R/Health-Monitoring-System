@@ -131,3 +131,4 @@ dist
 health-monitoring-system/node_modules
 private_key.pem
 public_key.pem
+/.idea/
