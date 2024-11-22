@@ -9,8 +9,8 @@ export async function POST(req) {
         if (userId instanceof Error) {
             return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
         }
-        const userProfile = await HealthWorkerController.Logout(userId)
-        if (!userProfile) {
+        const healthWorkerProfile = await HealthWorkerController.Logout(userId)
+        if (!healthWorkerProfile) {
             return NextResponse.json({ message: 'User not found' }, { status: 404 });
           }
         return NextResponse.json({ message: 'Logged out successfully' }, { status: 200 });

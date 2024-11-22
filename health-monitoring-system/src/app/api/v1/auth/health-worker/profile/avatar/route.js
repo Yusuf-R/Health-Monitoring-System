@@ -42,13 +42,13 @@ export async function PATCH(req) {
         );
 
         // Update the user's avatar URL in the database
-        const userProfile = await HealthWorkerController.UpdateAvatar(userId, result.secure_url);
+        const healthWorkerProfile = await HealthWorkerController.UpdateAvatar(userId, result.secure_url);
 
-        if (userProfile instanceof Error) {
+        if (healthWorkerProfile instanceof Error) {
             return NextResponse.json({ message: "Failed to update avatar" }, { status: 400 });
         }
 
-        return NextResponse.json(userProfile, { status: 201 });
+        return NextResponse.json(healthWorkerProfile, { status: 201 });
     } catch (error) {
         console.error("Upload Error:", error);
         return NextResponse.json({
