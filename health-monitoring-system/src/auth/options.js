@@ -60,11 +60,13 @@ const options = {
                 token.id = user.id;
                 token.role = user.role;
             }
+            console.log('JWT Token:', token); // Add this to debug
             return token;
         },
         async session({ session, token }) {
             session.user.id = token.id;
             session.user.role = token.role;
+            console.log('Session:', session); // Add this to debug
             return session;
         },
     },
@@ -83,6 +85,7 @@ const options = {
                 httpOnly: true,
                 sameSite: 'lax',
                 secure: process.env.NODE_ENV === 'production',
+                domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : 'localhost',
                 path: '/',
             },
         },
