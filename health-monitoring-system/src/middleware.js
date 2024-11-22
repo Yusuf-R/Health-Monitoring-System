@@ -7,12 +7,12 @@ export async function middleware(req) {
 
         // Define public routes that don't require authentication
         const publicRoutes = [
-            '/api/v1/user/register',
-            '/api/v1/user/login',
-            '/api/v1/health-worker/register',
-            '/api/v1/health-worker/login',
-            '/api/v1/stakeholder/register',
-            '/api/v1/stakeholder/login',
+            '/api/v1/auth/user/register',
+            '/api/v1/auth/user/login',
+            '/api/v1/auth/health-worker/register',
+            '/api/v1/auth/health-worker/login',
+            '/api/v1/auth/db/test',
+            '/api/v1/auth/decrypt',
         ];
 
         // Allow public routes to proceed without token validation
