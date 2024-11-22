@@ -55,11 +55,11 @@ function UserHMSDashboard() {
         }
 
         function handleLocationCheck(profile) {
-            // Step 4: Check if the profile has saved locations
-            const hasLocations = profile.email && profile.email.length > 0;
-            if (!hasLocations) {
+            // Step 4: Check if the profile has saved locations and has an address
+            const impCheck = profile.geoLocation && profile.geoLocation.length > 0 && profile.address;
+            if (!impCheck) {
                 // Redirect to Location Setup Page if no locations are found
-                toast.info('Redirecting to location setup page...');
+                toast.info('Redirecting to finish up profile settings...');
                 toast.info('Please set up your locations to continue.');
                 router.push("/user/get-started");
             } else {
