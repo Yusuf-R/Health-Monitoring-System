@@ -1,7 +1,11 @@
 import { axiosPublic, axiosPrivate } from "@/utils/AxiosInstance";
+import { userDataStore, healthWorkerDataStore, stakeholderDataStore } from "@/store/profileDataStore"
+import nacl from "tweetnacl";
+import { encodeBase64, decodeBase64, decodeUTF8 } from "tweetnacl-util";
+const publicKeyBase64 = process.env.NEXT_PUBLIC_TWEETNACL_PUBLIC_KEY;
 
 class AdminUtils {
-    
+
     // to be used for Registration. Login and SetPassword Specific operations
     static async encryptCredentials(data) {
         const publicKeyPem = process.env.NEXT_PUBLIC_ENCRYPTION_PUBLIC_KEY;
@@ -25,15 +29,15 @@ class AdminUtils {
             const importedKey = await window.crypto.subtle.importKey(
                 "spki",
                 publicKeyBuffer, {
-                    name: "RSA-OAEP",
-                    hash: "SHA-256",
-                },
+                name: "RSA-OAEP",
+                hash: "SHA-256",
+            },
                 false, ["encrypt"]
             );
 
             const encryptedData = await window.crypto.subtle.encrypt({
-                    name: "RSA-OAEP"
-                },
+                name: "RSA-OAEP"
+            },
                 importedKey,
                 dataBuffer
             );
@@ -43,49 +47,58 @@ class AdminUtils {
             throw error;
         }
     }
-    // FE Encryption
-    static async encryptUserId(userId) {
+
+    // Encrypt data using the PEM public key stored as an environment variable
+    static async encryptDataWithTweetNaCl(data) {
+        const publicKey = decodeBase64(publicKeyBase64);
+        const messageUint8 = decodeUTF8(JSON.stringify(data));
+
+        // Generate a nonce for encryption
+        const nonce = nacl.randomBytes(nacl.box.nonceLength);
+        const encryptedMessage = nacl.box(messageUint8, nonce, publicKey, nacl.box.keyPair().secretKey);
+
+        return {
+            encryptedMessage: encodeBase64(encryptedMessage),
+            nonce: encodeBase64(nonce),
+        };
+
+    }
+    static async dataDecryption(obj) {
         try {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(userId);
-
-            // Generate AES key
-            const keyMaterial = await crypto.subtle.digest(
-                'SHA-256',
-                encoder.encode(process.env.NEXT_PUBLIC_USER_ID_SECRET)
-            );
-            const key = await crypto.subtle.importKey(
-                'raw',
-                keyMaterial, { name: 'AES-GCM' },
-                false, ['encrypt']
-            );
-
-            // Generate IV (12 bytes)
-            const iv = crypto.getRandomValues(new Uint8Array(12));
-
-            // Encrypt the user ID
-            const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv },
-                key,
-                data
-            );
-
-            // Extract encrypted content and auth tag
-            const encryptedContent = new Uint8Array(encrypted);
-
-            // Combine IV + Encrypted Content into a single Uint8Array
-            const result = new Uint8Array(iv.length + encryptedContent.length);
-            result.set(iv);
-            result.set(encryptedContent, iv.length);
-
-            // Encode to Base64
-            const encryptedBase64 = btoa(String.fromCharCode(...result));
-
-            return encryptedBase64;
+            const response = await axiosPublic({
+                method: "POST",
+                url: '/user/decrypt',
+                data: obj,
+            });
+            if (response.status === 201) {
+                return response.data;
+            } else {
+                throw new Error(response.error);
+            }
         } catch (error) {
-            console.error("Encryption error:", error);
-            throw error;
+            console.log({ error });
+            throw new Error(error);
         }
     }
+
+    static async encryptAndStoreProfile(profileData) {
+        try {
+            const encryptedData = await AdminUtils.encryptDataWithTweetNaCl(profileData, publicKeyBase64);
+            if (profileData.role === 'User') {
+                userDataStore.getState().setEncryptedUserData(encryptedData);
+            } else if (profileData.role === 'HealthWorker') {
+                healthWorkerDataStore.getState().setEncryptedHealthWorkerData(encryptedData);
+            } else if (profileData.role === 'StakeHolder') {
+                stakeholderDataStore.getState().setEncryptedStakeHolderData(encryptedData);
+            }
+            return;
+        } catch (error) {
+            console.error("Failed to encrypt and store data with TweetNaCl:", error);
+        }
+    }
+
+
+    // Api for User Objects
 
     static async userRegistration(obj) {
         try {
@@ -95,7 +108,7 @@ class AdminUtils {
                 data: obj,
             });
             if (response.status === 201) {
-                return response.data;
+                return response.data.data;
             } else {
                 throw new Error(response.error);
             }
@@ -112,8 +125,25 @@ class AdminUtils {
                 url: '/user/login',
                 data: obj,
             });
-            console.log({ response });
+            console.log(response.data);
             if (response.status === 201) {
+                return response.data.data;
+            } else {
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.log({ error });
+            throw new Error(error);
+        }
+    }
+
+    static async userLogout() {
+        try {
+            const response = await axiosPrivate({
+                method: "POST",
+                url: '/user/logout',
+            });
+            if (response.status === 200) {
                 return response.data;
             } else {
                 throw new Error(response.error);
@@ -125,8 +155,228 @@ class AdminUtils {
     }
 
     static async userProfile() {
-        // under construction
+        try {
+            const response = await axiosPrivate({
+                method: "GET",
+                url: '/user/profile',
+            });
+            if (response.status === 200) {
+                return response.data;
+            } else {
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.log({ error });
+            throw new Error(error);
+        }
     }
+
+    static async updateUserProfile(obj) {
+        try {
+            const response = await axiosPrivate({
+                method: "PATCH",
+                url: '/user/profile/update',
+                data: obj,
+            });
+            if (response.status === 201) {
+                return response.data;
+            } else {
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.log({ error });
+            throw new Error(error);
+        }
+    }
+
+    static async userAvatar(formData) {
+        try {
+            const response = await axiosPrivate({
+                method: "PATCH",
+                url: '/user/profile/avatar',
+                data: formData,
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+                // Add this to properly handle the FormData
+                transformRequest: [function (data) {
+                    return data;
+                }],
+            });
+
+            if (response.status === 201) {
+                return response.data;
+            } else {
+                console.error('Upload response:', response);
+                throw new Error(response.data?.error || 'Upload failed');
+            }
+        }
+        catch (error) {
+            console.error('Upload error:', error);
+            throw error;
+        }
+    }
+
+    static async setUserLocation(obj) {
+        try {
+            const response = await axiosPrivate({
+                method: "PATCH",
+                url: '/user/profile/location/set',
+                data: obj,
+            });
+            if (response.status === 201) {
+                return response.data;
+            } else {
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.log({ error });
+            throw new Error(error);
+        }
+    }
+
+    static async deleteUserLocation(obj) {
+        try {
+            const response = await axiosPrivate({
+                method: "DELETE",
+                url: '/user/profile/location/delete',
+                data: obj,
+            });
+            if (response.status === 200) {
+                return response.data;
+            } else {
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.log({ error });
+            throw new Error(error);
+        }
+    }
+
+    static async editUserLocation(obj) {
+        try {
+            const response = await axiosPrivate({
+                method: "PATCH",
+                url: '/user/profile/location/edit',
+                data: obj,
+            });
+            if (response.status === 201) {
+                return response.data;
+            } else {
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.log({ error });
+            throw new Error(error);
+        }
+    }
+
+
+
+    // health worker section
+
+
+    static async healthWorkerRegistration(obj) {
+        try {
+            const response = await axiosPublic({
+                method: "POST",
+                url: '/health-worker/register',
+                data: obj,
+            });
+            if (response.status === 201) {
+                console.log({response});
+                return response.data.data;
+            } else {
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.log({ error });
+            throw new Error(error);
+        }
+    }
+
+    static async healthWorkerLogin(obj) {
+        try {
+            const response = await axiosPublic({
+                method: "POST",
+                url: '/health-worker/login',
+                data: obj,
+            });
+            if (response.status === 201) {
+                return response.data.data;
+            } else {
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.log({ error });
+            throw new Error(error);
+        }
+    }
+
+    static async healthWorkerLogout() {
+        try {
+            const response = await axiosPrivate({
+                method: "POST",
+                url: '/health-worker/logout',
+            });
+            if (response.status === 200) {
+                return response.data;
+            } else {
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.log({ error });
+            throw new Error(error);
+        }
+    }
+
+    static async healthWorkerProfile() {
+        try {
+            const response = await axiosPrivate({
+                method: "GET",
+                url: '/health-worker/profile',
+            });
+            if (response.status === 200) {
+                return response.data;
+            } else {
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.log({ error });
+            throw new Error(error);
+        }
+    }
+
+    static async healthWorkerAvatar(formData) {
+        try {
+            const response = await axiosPrivate({
+                method: "PATCH",
+                url: '/health-worker/profile/avatar',
+                data: formData,
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+                // Add this to properly handle the FormData
+                transformRequest: [function (data) {
+                    return data;
+                }],
+            });
+
+            if (response.status === 201) {
+                return response.data;
+            } else {
+                console.error('Upload response:', response);
+                return new Error(response.data?.error || 'Upload failed');
+            }
+        }
+        catch (error) {
+            console.error('Upload error:', error);
+            throw error;
+        }
+    }
+
+
+
 
 }
 

@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation";
 import AdminUtils from "@/utils/AdminUtils";
 import { signIn } from "next-auth/react";
 import { useMediaQuery, useTheme } from '@mui/material';
+import CircularProgress from '@mui/material/CircularProgress';
 
 const borderAnimation = keyframes`
   0% { border-color: #FF6347; }
@@ -122,12 +123,13 @@ export default function LoginSignUp() {
         console.log('Data successfully validated');
         const encryptedData = await AdminUtils.encryptCredentials(data);
         mutationRegister.mutate({ encryptedData }, {
-            onSuccess: async () => {
+            onSuccess: async (responseData) => {
                 toast.success("Registration successful 🚀");
                 const signInResponse = await signIn('credentials', {
                     redirect: false,
                     email: data.email,
                     password: data.password,
+                    role: responseData.role,
                 });
                 console.log(signInResponse);
 
@@ -162,13 +164,13 @@ export default function LoginSignUp() {
         console.log('Data successfully validated');
         const encryptedData = await AdminUtils.encryptCredentials(data);
         mutationLogin.mutate({ encryptedData }, {
-            onSuccess: async () => {
+            onSuccess: async (responseData) => {
                 toast.success("Login successful 🚀");
-
                 // Log in the user immediately after successful registration
                 const loginResult = await signIn("credentials", {
                     email: data.email,
                     password: data.password,
+                    role: responseData.role,
                     redirect: false,
                 });
 
@@ -208,11 +210,12 @@ export default function LoginSignUp() {
                 justifyContent: 'center',
                 minHeight: '100vh',
                 color: '#FFF',
-                marginTop:'30px'
+                marginTop: '5x',
+                overflow: 'hidden',
             }}
         >
             <Typography
-                variant="h5"
+                variant="h4"
                 sx={{
                     fontWeight: 'bold',
                     mb: 5,
@@ -224,7 +227,7 @@ export default function LoginSignUp() {
                     animation: `${textGradientAnimation} 5s ease infinite`,
                 }}
             >
-                Health Monitoring System 🩺
+                Community Health Monitoring System 🩺
             </Typography>
             <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 5 , textAlign:'center'}}>
                 To get started, please login or sign up.
@@ -240,6 +243,7 @@ export default function LoginSignUp() {
                     background: '#333',
                     marginBottom: '30px',
                     position: 'relative',
+                    overflow: 'hidden',
                 }}
             >
                 {/* Sliding toggle button with smoother transition */}
@@ -312,7 +316,7 @@ export default function LoginSignUp() {
                                 maxWidth: '100%',
                             }}
                         >
-                            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 3 }}>
+                            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
                                 {isLogin ? 'Login' : 'Sign Up'}
                             </Typography>
 
@@ -346,7 +350,7 @@ export default function LoginSignUp() {
                                                 },
                                                 shrink: true,
                                             }}
-                                            sx={{ mb: 5, mt: 5 }}
+                                            sx={{ mb: 5, mt: 1 }}
                                             label="Email"
                                             variant="outlined"
                                             autoComplete="off"
@@ -465,10 +469,15 @@ export default function LoginSignUp() {
                                 variant="contained"
                                 fullWidth
                                 sx={{
-                                    mt: 2, backgroundColor: '#00cc00'
+                                    ...(toLogin && {
+                                        pointerEvents: 'none', 
+                                        opacity: 1,
+                                    }),
+                                    mt: 2,
+                                    backgroundColor: '#00cc00'
                                 }}
                                 type="submit"
-                                disabled={mutationRegister.isLoading || mutationLogin.isLoading}
+                                endIcon={toLogin && <CircularProgress size={20} color="inherit" />}
                             >
                                 {isLogin ? 'Login' : 'Sign Up'}
                             </Button>
@@ -510,6 +519,7 @@ export default function LoginSignUp() {
                         </Box>
                     </motion.div>
                 </AnimatePresence>
+                {/* Lazy Component */}
             </Box>
         </Box>
     );

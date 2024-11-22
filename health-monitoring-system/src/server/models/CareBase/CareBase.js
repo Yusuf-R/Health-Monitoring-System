@@ -38,8 +38,10 @@ const CareBaseSchema = new Schema({
     lastName: { type: String, default: null },
     middleName: { type: String, default: null },
     maritalStatus: { type: String, enum: ['Single', 'Married', 'Divorced', 'Widowed'], default: 'Single' },
+    dob: { type: String, default: null },
     emergencyContacts: { type: [String], default: [] },
     profileStatus: { type: String, enum: ['Incomplete', 'Active'], default: 'Incomplete' },
+    religion: { type: String, enum: ['Christianity', 'Islam', 'Traditional', 'Others'], default:  null },
     missingFields: { type: [String], default: [] },
     status: {
         type: String,
@@ -48,36 +50,61 @@ const CareBaseSchema = new Schema({
     },
     avatar: { type: String, default: null },
     phoneNumber: { type: String, default: null },
+    gender: { type: String, enum: ['Male', 'Female', 'Other'], default: 'Male' },
+    nationality: { type: String, default: null },
+    occupation: { type: String, default: null },
+    employer: { type: String, default: null },
+    companyPhone: { type: String, default: null },
     country: { type: String, default: null },
     address: { type: String, default: null },
     stateOfOrigin: { type: String, default: null },
     lga: { type: String, default: null },
+    currlga: { type: String, default: null },
     stateOfResidence: { type: String, default: null },
+    nextOfKin: { type: String, default: null },
+    nextOfKinRelationship: { type: String, default: null },
+    nextOfKinPhone: { type: String, default: null },
     googleId: { type: String, default: null },
     githubId: { type: String, default: null },
-    geoLocation: {
-        type: {
-            type: String, // Specifies that the 'type' is 'Point'
-            enum: ['Point'], // GeoJSON supports only 'Point' for now
-        },
-        coordinates: {
-            type: [Number],
-            default: [0, 0]
-        }
-    },
 }, options);
 
+
 // Virtual for fullName
-CareBaseSchema.virtual("fullName")
+CareBaseSchema.virtual('fullName')
     .get(function () {
-        return `${this.firstName || ''} ${this.middleName || ''} ${this.lastName || ''}`.trim();
+        return [
+            this.firstName || '',
+            this.middleName || '',
+            this.lastName || '',
+        ]
+            .filter((part) => part.trim() !== '')
+            .join(' ')
+            .trim();
     })
-    .set(function (name) {
-        const [firstName, middleName, lastName] = name.split(" ");
-        this.firstName = firstName;
-        this.middleName = middleName;
-        this.lastName = lastName;
+    .set(function (fullName) {
+        const parts = fullName.split(' ').filter((part) => part.trim() !== '');
+        this.firstName = parts[0] || null;
+        this.middleName = parts.length > 2 ? parts[1] : null;
+        this.lastName = parts.length > 1 ? parts[parts.length - 1] : null;
     });
+
+// Middleware to automatically generate and store fullName
+CareBaseSchema.pre('save', function (next) {
+    if (this.firstName || this.middleName || this.lastName) {
+        this.fullName = [
+            this.firstName || '',
+            this.middleName || '',
+            this.lastName || '',
+        ]
+            .filter((part) => part.trim() !== '')
+            .join(' ')
+            .trim();
+    }
+    next();
+});
+
+
+// Remove the pre-save hook for fullName
 
 // Middleware to update profileStatus based on completeness
 CareBaseSchema.pre("save", function (next) {
@@ -88,6 +115,19 @@ CareBaseSchema.pre("save", function (next) {
     next();
 });
 
+// Define the Address schema for categorized addresses
+const GeoLocationSchema = new mongoose.Schema({
+    category: {
+        type: String,
+        enum: ["Home", "School", "Office", "MarketPlace", "Mosque", "Church", "Hospital", "Hotel", "SuperMarket", "Others"],
+        required: null,
+    },
+    latitude: { type: Number, required: null },
+    longitude: { type: Number, required: null },
+    locationName: { type: String, required: null },
+    description: { type: String, default: "" },
+}, { _id: true });
+
 // Initialize CareBase and its child models
 const getCareBaseModels = async () => {
     await connectDB();
@@ -97,12 +137,28 @@ const getCareBaseModels = async () => {
 
     // User-specific schema
     const UserSchema = new Schema({
+        geoLocation: {
+            type: [GeoLocationSchema], // Store multiple addresses for quick access
+            default: [],
+        },
         wellnessCheckHistory: { type: [String], default: [] },
         healthRecords: { type: [String], default: [] },
+        bloodGroup: { type: String, enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'], default: 'Unknown' },
+        genotype: { type: String, enum: ['AA', 'AS', 'AC', 'SS', 'SC', 'CC', 'Unknown'], default: 'Unknown' },
+        allergies: { type: [String], default: [] },
+        medicalHistory: { type: [String], default: [] },
+        medication: { type: [String], default: [] },
+        familyHistory: { type: [String], default: [] },
+        dietaryRequirements: { type: [String], default: [] },
+        pregnancyStatus: { type: String, enum: ['Yes', 'No', 'Unknown'], default: 'Unknown' },
     });
 
     // HealthWorker-specific schema
     const HealthWorkerSchema = new Schema({
+        geoLocation: {
+            type: [GeoLocationSchema], // Store multiple addresses for quick access
+            default: [],
+        },
         certifications: { type: [String], default: [] },
         assignedPatients: { type: [Schema.Types.ObjectId], ref: 'User', default: [] },
         department: { type: String, default: null },

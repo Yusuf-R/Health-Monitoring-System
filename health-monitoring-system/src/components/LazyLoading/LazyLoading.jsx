@@ -34,7 +34,6 @@ function LazyLoading() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     backgroundColor: 'rgba(0, 0, 0, 0.6)',  // Semi-transparent background
-
                 }}
             >
                <Stack direction="row" spacing={2} alignItems="center">

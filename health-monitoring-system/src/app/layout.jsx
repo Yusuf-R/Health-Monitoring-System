@@ -28,13 +28,13 @@ export default function RootLayout({ children }) {
                     {children}
                 </ReactQueryProvider>
                 <Toaster
-          richColors
-          duration={2000}
-          position="top-right"
-          reverseOrder={false}
+                    richColors
+                    duration={2000}
+                    position="top-right"
+                    reverseOrder={false}
                     closeOnClick
                     expand={true}
-        />
+                />
             </body>
         </html>
     );
