@@ -43,6 +43,7 @@ const nextConfig = {
     eslint: {
         ignoreDuringBuilds: true,
     },
+    crossOrigin: 'anonymous',
 
 };
 
