@@ -60,13 +60,11 @@ const options = {
                 token.id = user.id;
                 token.role = user.role;
             }
-            console.log('JWT Token:', token); // Add this to debug
             return token;
         },
         async session({ session, token }) {
             session.user.id = token.id;
             session.user.role = token.role;
-            console.log('Session:', session); // Add this to debug
             return session;
         },
     },
@@ -77,26 +75,6 @@ const options = {
     },
     jwt: {
         encryption: true, // Use JWE for JWT encryption
-    },
-    cookies: {
-        sessionToken: {
-            name: `__Secure-next-auth.session-token`,
-            options: {
-                httpOnly: true,
-                sameSite: 'lax',
-                secure: process.env.NODE_ENV === 'production',
-                domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : 'localhost',
-                path: '/',
-            },
-        },
-        callbackUrl: {
-            name: `__Secure-next-auth.callback-url`,
-            options: {
-                sameSite: 'lax',
-                secure: process.env.NODE_ENV === 'production',
-                path: '/',
-            },
-        },
     },
     secret: process.env.AUTH_SECRET,
 };
