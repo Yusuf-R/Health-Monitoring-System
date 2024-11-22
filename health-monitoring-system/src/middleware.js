@@ -16,16 +16,16 @@ export async function middleware(req) {
         ];
 
         // Allow public routes to proceed without token validation
-        if (publicRoutes.some((route) => pathname.startsWith(route))) {
+        if (publicRoutes.some((route) => pathname.includes(route))) {
             console.log(`Public route accessed: ${pathname}`);
             return NextResponse.next();
         }
 
-        // Check token for protected routes
+        // Retrieve the token for protected routes
         const token = await getToken({
             req,
             secret: process.env.AUTH_SECRET,
-            secureCookie: true,
+            secureCookie: process.env.NODE_ENV === 'production',
             cookieName:
                 process.env.NODE_ENV === 'production'
                     ? '__Secure-next-auth.session-token'
@@ -34,18 +34,14 @@ export async function middleware(req) {
         });
 
         if (!token) {
-            const headers = Object.fromEntries(req.headers.entries());
-            console.log('Request Headers:', headers);
-            console.log('Request Cookies:', req.cookies);
-            console.error('No token found');
+            console.error('No token found for protected route');
             return NextResponse.redirect(new URL('/', req.url));
         }
-        console.log({token});
 
+        console.log('Token retrieved:', token);
         const userRole = token.role;
-        console.log(`Pathname: ${pathname}, Role: ${userRole}`);
 
-        // Role-based authorization logic
+        // Role-based access logic for frontend paths
         const rolePaths = {
             Admin: '/admin',
             User: '/user',
@@ -53,13 +49,19 @@ export async function middleware(req) {
             StakeHolder: '/stakeholder',
         };
 
-        const expectedPath = rolePaths[userRole];
-        if (expectedPath && pathname.startsWith(expectedPath)) {
-            return NextResponse.next();
+        // Check role access for frontend routes
+        if (!pathname.startsWith('/api')) {
+            const expectedPath = rolePaths[userRole];
+            if (expectedPath && pathname.includes(expectedPath)) {
+                return NextResponse.next();
+            }
+            console.warn(`Access denied for Role: ${userRole} on Path: ${pathname}`);
+            return NextResponse.redirect(new URL('/', req.url));
         }
 
-        console.warn(`Access denied for Role: ${userRole} on Path: ${pathname}`);
-        return NextResponse.redirect(new URL('/', req.url));
+        // Allow access to protected API routes
+        console.log(`Protected API route accessed: ${pathname} by role: ${userRole}`);
+        return NextResponse.next();
     } catch (error) {
         console.error('Middleware Error:', error);
         return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
