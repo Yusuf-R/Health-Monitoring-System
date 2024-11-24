@@ -4,9 +4,7 @@ export const dobProps = {
             color: 'white',
         }
     },
-    actionBar: {
-        actions: ['cancel', 'clear', 'accept'],
-    },
+
     layout: {
         sx: {
             '& .MuiPickersLayout-root': {
@@ -167,12 +165,10 @@ export const dobProps = {
     }
 }
 
-
 export const sex = [
     'Female',
     'Male',
 ];
-
 
 export const vType = [
     'Car',
@@ -220,7 +216,6 @@ export const nextOfKinRelationship = [
     'Others',
 ];
 
-
 export const txProps = {
     color: "white",
     bgcolor: '#051935',
@@ -250,7 +245,6 @@ export const maritalStatus = [
     'Widowed',
     'Divorced',
 ]
-
 
 export const statesAndLGAs = {
     Abia: [
@@ -1103,6 +1097,17 @@ export const religionIdentity = [
     'Islam',
     'Others',
 ];
+
 export const Countries = [
     'Nigeria',
 ];
+
+export const tabProps = {
+    color: "#FFF",
+    fontWeight: 'bold',
+    fontSize: '0.9rem',
+    "&.Mui-selected": {
+        color: "#46F0F9",
+    },
+};
+

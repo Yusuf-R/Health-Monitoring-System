@@ -54,6 +54,10 @@
 
         "dayjs": "^1.11.13",
 
+        "firebase": "^11.0.2",
+
+        "firebase-admin": "^13.0.1",
+
         "framer-motion": "^11.11.10",
 
         "mongoose": "^8.7.3",
