@@ -1,10 +1,9 @@
 'use client';
 
-import { useEffect, useState, useCallback, lazy, Suspense } from "react";
+import { lazy, Suspense } from "react";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import AdminUtils from "@/utils/AdminUtils";
 import LazyLoading from "@/components/LazyLoading/LazyLoading";
-import { useRouter } from "next/navigation";
 import DataFetchError from "@/components/Errors/DataFetchError/DataFetchError";
 import useLocationStore from "@/store/useLocationStore";
 
@@ -29,22 +28,7 @@ function EditUserLocation() {
     // Effective user data (cached or fetched)
     const effectiveUserData = userProfile || data;
 
-    // Encrypt and store profile data
-    const encryptAndStoreData = useCallback(async () => {
-        if (effectiveUserData) {
-            try {
-                await AdminUtils.encryptAndStoreProfile(effectiveUserData);
-            } catch (error) {
-                console.error("Encryption Error:", error);
-            }
-        }
-    }, [effectiveUserData]);
 
-    useEffect(() => {
-        (async () => {
-            await encryptAndStoreData();
-        })(); // Immediately-invoked async function
-    }, [encryptAndStoreData]);
 
     // Handle loading state
     if (isLoading) {

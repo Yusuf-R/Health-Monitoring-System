@@ -130,8 +130,8 @@ function SideNav({ navState, activeRoute }) {
       )}
       <List>
         <ListItem
-          onClick={() => handleNavigation("/user/dashboard/news")}
-          sx={{ ...hoverStyle, ...(activeRoute === "/user/dashboard/news" ? activeStyle : {}) }}
+          onClick={() => handleNavigation("/user/info-hub/news")}
+          sx={{ ...hoverStyle, ...(activeRoute === "/user/info-hub/news" ? activeStyle : {}) }}
         >
           {showIcons && (
             <ListItemIcon sx={{ color: "white" }}>
@@ -142,8 +142,8 @@ function SideNav({ navState, activeRoute }) {
         </ListItem>
 
         <ListItem
-          onClick={() => handleNavigation("/user/dashboard/feeds")}
-          sx={{ ...hoverStyle, ...(activeRoute === "/user/dashboard/feeds" ? activeStyle : {}) }}
+          onClick={() => handleNavigation("/user/info-hub/feeds")}
+          sx={{ ...hoverStyle, ...(activeRoute === "/user/info-hub/feeds" ? activeStyle : {}) }}
         >
           {showIcons && (
             <ListItemIcon sx={{ color: "white" }}>
@@ -154,8 +154,8 @@ function SideNav({ navState, activeRoute }) {
         </ListItem>
 
         <ListItem
-          onClick={() => handleNavigation("/user/dashboard/tips")}
-          sx={{ ...hoverStyle, ...(activeRoute === "/user/dashboard/tips" ? activeStyle : {}) }}
+          onClick={() => handleNavigation("/user/info-hub/tips-guides")}
+          sx={{ ...hoverStyle, ...(activeRoute === "/user/info-hub/tips-guides" ? activeStyle : {}) }}
         >
           {showIcons && (
             <ListItemIcon sx={{ color: "white" }}>
