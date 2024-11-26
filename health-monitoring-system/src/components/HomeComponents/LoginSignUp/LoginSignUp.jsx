@@ -131,8 +131,6 @@ export default function LoginSignUp() {
                     password: data.password,
                     role: responseData.role,
                 });
-                console.log(signInResponse);
-
                 if (signInResponse.ok) {
                     toast.success("Redirecting to dashboard 📡");
                     setToLogin(false);

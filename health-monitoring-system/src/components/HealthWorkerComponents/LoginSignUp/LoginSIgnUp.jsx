@@ -168,6 +168,7 @@ export default function HealthWorkerLoginSignUp() {
                 },
                 onError: (error) => {
                     toast.error(error.message);
+                    toast.error('Errors in your credentials, Please try again');
                     setLoading(false);
                 },
             });
@@ -213,17 +214,20 @@ export default function HealthWorkerLoginSignUp() {
                         router.push('/health-worker/dashboard'); // Redirect to dashboard
                     } else {
                         toast.error("Login failed after registration");
+                        toast.error('Errors in your credentials, Please try again');
                         setToLogin(false);
                     }
                 },
                 onError: (error) => {
                     toast.error("Error: Invalid Credentials");
+                    toast.error('Errors in your credentials, Please try again');
                     toast.error(error.message);
                     setToLogin(false);
                 },
             });
         } catch (error) {
             console.error("Error during login:", error);
+            toast.error('Errors in your credentials, Please try again');
             toast.error("An unexpected error occurred during login.");
             setToLogin(false);
         }
