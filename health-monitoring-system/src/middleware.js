@@ -4,8 +4,6 @@ import { NextResponse } from 'next/server';
 export async function middleware(req) {
     try {
         const { pathname } = req.nextUrl;
-        console.log(`Route: ${pathname}`);
-        console.log('Headers in req:', req.headers.get('cookie'));
 
         // Define public routes that don't require authentication
         const publicRoutes = [
@@ -37,7 +35,6 @@ export async function middleware(req) {
         }
 
         const userRole = token.role;
-        console.log({token});
 
         // Role-based access logic for frontend paths
         const rolePaths = {
