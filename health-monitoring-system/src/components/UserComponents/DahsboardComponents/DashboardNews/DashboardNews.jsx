@@ -1,13 +1,23 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Autoplay, Navigation, Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
-import { Card, CardContent, CardMedia, Typography, Box, Button } from "@mui/material";
+import {
+    Card,
+    CardContent,
+    CardMedia,
+    Typography,
+    Box,
+    Button,
+    useTheme,
+    Paper,
+    alpha,
+} from "@mui/material";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
-
+import Marquee from "react-fast-marquee";
 
 // Full article data
 const articles = [
@@ -23,54 +33,7 @@ const articles = [
         image: "/articleImg1.jpeg",
         link: "/articles/limit-sugary-drinks",
     },
-    {
-        id: 2,
-        title: "Eat Nuts and Seeds",
-        content1: `Nuts and seeds are packed with protein, fiber, and vitamins. They help reduce the risk of type 2 diabetes and heart disease.`,
-        content2: `Additionally, a low intake of nuts and seeds was potentially linked to an increased risk of death from heart disease, stroke, or type 2 diabetes.`,
-        image: "/articleImg2.jpeg",
-        link: "/articles/eat-nuts-and-seeds",
-    },
-    {
-        id: 3,
-        title: "Avoid Ultra-Processed Foods",
-        content1: `Ultra-processed foods are loaded with additives and low in nutrients. Avoid snacks like cakes, chips, and fast food to reduce risks of chronic diseases.`,
-        content2: `Diets high in ultra-processed food can contribute to obesity, type 2 diabetes, heart disease, and other chronic conditions.`,
-        image: "/articleImg3.jpeg",
-        link: "/articles/avoid-ultra-processed-foods",
-    },
-    {
-        id: 4,
-        title: "Don’t Fear Coffee",
-        content1: `Coffee is rich in antioxidants and may reduce the risk of diseases like Parkinson’s and Alzheimer’s. Consume in moderation to enjoy its benefits.`,
-        content2: `Excessive caffeine intake may lead to health issues like insomnia and heart palpitations. Keep your intake to less than 4 cups per day.`,
-        image: "/articleImg4.jpeg",
-        link: "/articles/dont-fear-coffee",
-    },
-    {
-        id: 5,
-        title: "Eat Fatty Fish",
-        content1: `Fatty fish like salmon are rich in omega-3 fatty acids, which support brain and heart health. Include them in your meals weekly.`,
-        content2: `Studies show that people who eat fish regularly have a lower risk for several conditions, including heart disease, dementia, and inflammatory bowel disease.`,
-        image: "/articleImg5.jpeg",
-        link: "/articles/eat-fatty-fish",
-    },
-    {
-        id: 6,
-        title: "Get Enough Sleep",
-        content1: `Sleep is crucial for mental and physical well-being. Poor sleep increases risks of obesity, diabetes, and heart disease. Aim for 7-9 hours of quality sleep each night.`,
-        content2: `People who do not get enough sleep tend to make food choices that are higher in fat, sugar, and calories, potentially leading to unwanted weight gain.`,
-        image: "/articleImg6.jpeg",
-        link: "/articles/get-enough-sleep",
-    },
-    {
-        id: 7,
-        title: "Feed Your Gut Bacteria",
-        content1: `Gut bacteria are essential for digestion and immunity. Support them by eating fermented foods, fiber-rich meals, and taking probiotics.`,
-        content2: `Fiber serves as a prebiotic, or a food source for your gut bacteria, helping improve gut health and overall immunity.`,
-        image: "/articleImg7.jpeg",
-        link: "/articles/feed-your-gut-bacteria",
-    },
+    // Add other articles...
 ];
 
 const scrollingData = [
@@ -87,53 +50,59 @@ const scrollingData = [
     "Emergency preparedness for local communities.",
 ];
 
-function NewsHeader() {
+const NewsMarquee = ({ userName, highlights, speed = 40 }) => {
+    const [currentDate, setCurrentDate] = useState('');
+    const theme = useTheme();
+
+    useEffect(() => {
+        const today = new Date();
+        const formattedDate = today.toLocaleDateString('en-US', {
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric',
+        });
+        setCurrentDate(formattedDate);
+    }, []);
+
     return (
-        <Box
+        <Paper
+            elevation={3}
             sx={{
-                overflow: "hidden",
-                whiteSpace: "nowrap",
-                display: "flex",
-                alignItems: "center",
-                background: "linear-gradient(to right, #003366, #002244)",
-                color: "#FFF",
-                py: 1,
-                px: 2,
-                borderRadius: "5px",
-                boxShadow: 2,
-                mb:1,
+                overflow: 'hidden',
+                bgcolor: theme.palette.mode === 'dark' ? alpha('#004e92', 0.9) : alpha('#004e92', 0.8),
+                color: '#FFF',
+                p: 2,
+                borderRadius: '16px',
+                mb: 4,
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
             }}
         >
-            <Typography
-                variant="h5"
-                sx={{
-                    fontWeight: "bold",
-                    animation: "marquee 35s linear infinite",
-                    display: "inline-block",
-                    whiteSpace: "nowrap",
-                }}
+            <Marquee
+                gradient={false}
+                speed={speed}
+                pauseOnHover
+                delay={4} // Adds delay before scrolling starts
             >
-                {scrollingData.map((item, index) => (
-                    <span key={index} style={{ marginRight: "2rem" }}>
-                        {item}{" "}
-                    </span>
-                ))}
-            </Typography>
-            <style jsx global>{`
-                @keyframes marquee {
-                    0% {
-                        transform: translateX(100%);
-                    }
-                    100% {
-                        transform: translateX(-100%);
-                    }
-                }
-            `}</style>
-        </Box>
+                <Typography
+                    sx={{
+                        display: 'inline',
+                        fontSize: '1.2rem',
+                        fontWeight: 600,
+                        '& span': {
+                            color: '#46F0F9',
+                        },
+                    }}
+                >
+                    👋 Good day, <span>{userName || "Guest"}</span> | 📅 Today: {currentDate} | 📰 Latest Headlines:{" "}
+                    {highlights.join(' • ')}
+                </Typography>
+            </Marquee>
+        </Paper>
     );
-}
+};
 
-function DashboardNews() {
+function DashboardNews({ userName }) {
     return (
         <Box
             sx={{
@@ -142,7 +111,7 @@ function DashboardNews() {
                 maxHeight: "700px",
             }}
         >
-            <NewsHeader />
+            <NewsMarquee userName={userName} highlights={scrollingData} speed={90} />
             <Swiper
                 modules={[Autoplay, Navigation, Pagination]}
                 spaceBetween={20}
