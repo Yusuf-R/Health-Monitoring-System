@@ -1,16 +1,10 @@
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
+import UnderConstruction from "@/components/UnderConstruction/UnderConstruction";
 
-function HealthWorkerHMSDashboard() {
+function HealthWorkerDashboard() {
     return (
-        <>
-            <Box sx={{padding: '20px'}}>
-                <Typography variant="h3" sx={{fontWeight: 'bold', color: '#000FFF'}}>
-                    Under construction !!!
-                </Typography>
-            </Box>
-        </>
-    );
+        <UnderConstruction />
+    )
 }
 
-export default HealthWorkerHMSDashboard;
+
+export default HealthWorkerDashboard;

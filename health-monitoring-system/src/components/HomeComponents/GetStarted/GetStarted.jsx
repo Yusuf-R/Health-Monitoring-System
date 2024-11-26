@@ -45,12 +45,12 @@ function GetStarted() {
       backgroundImage: backgroundImages.healthWorker,
       route: '/authorization/health-worker',
     },
-    {
-      title: 'Stakeholder',
-      description: 'Analyze community health trends and contribute to informed decision-making.',
-      backgroundImage: backgroundImages.stakeholder,
-      route: '/authorization/stakeholder',
-    },
+    // {
+    //   title: 'Stakeholder',
+    //   description: 'Analyze community health trends and contribute to informed decision-making.',
+    //   backgroundImage: backgroundImages.stakeholder,
+    //   route: '/authorization/stakeholder',
+    // },
   ];
 
   return (
@@ -70,7 +70,7 @@ function GetStarted() {
       {/* Introductory Heading and Text */}
       <motion.div {...fadeIn}>
         <Typography variant="h2" sx={{ fontSize: { xs: '24px', md: '36px' }, fontWeight: 'bold', mb: 2 }}>
-          Welcome to Community Health Monitor
+          Welcome to Community Health Monitoring System
         </Typography>
         <Typography variant="body1" sx={{ fontSize: { xs: '16px', md: '20px' }, maxWidth: '800px', mb: 4 }}>
           Select your role to get started. Whether you’re here to track your own health, support others as a health
