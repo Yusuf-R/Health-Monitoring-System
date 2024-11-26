@@ -28,7 +28,6 @@ const options = {
                     await dbClient.connect();
 
                     const { User, HealthWorker } = await getCareBaseModels();
-                    console.log({credentials});
                     const Model = credentials?.role === 'HealthWorker' ? HealthWorker : User;
 
                     // Attempt to find the user and validate credentials
@@ -36,7 +35,6 @@ const options = {
                     if (!user) {
                         return new Error("User not found");
                     }
-
                     const isPasswordValid = await AuthController.comparePassword(credentials?.password, user.password);
                     if (!isPasswordValid) {
                         return new Error("Invalid credentials");
@@ -54,7 +52,6 @@ const options = {
     ],
     callbacks: {
         async jwt({ token, user }) {
-            console.log('JWT Callback:', { token, user });
             if (user) {
                 token.id = user.id;
                 token.role = user.role;
@@ -62,7 +59,6 @@ const options = {
             return token;
         },
         async session({ session, token }) {
-            console.log('Session Callback:', { session, token });
             session.user.id = token.id;
             session.user.role = token.role;
             return session;
