@@ -28,17 +28,18 @@ const options = {
                     await dbClient.connect();
 
                     const { User, HealthWorker } = await getCareBaseModels();
-                    const Model = credentials.role === 'HealthWorker' ? HealthWorker : User;
+                    console.log({credentials});
+                    const Model = credentials?.role === 'HealthWorker' ? HealthWorker : User;
 
                     // Attempt to find the user and validate credentials
-                    const user = await Model.findOne({ email: credentials.email }).select("+password");
+                    const user = await Model.findOne({ email: credentials?.email }).select("+password");
                     if (!user) {
-                        throw new Error("User not found");
+                        return new Error("User not found");
                     }
 
-                    const isPasswordValid = await AuthController.comparePassword(credentials.password, user.password);
+                    const isPasswordValid = await AuthController.comparePassword(credentials?.password, user.password);
                     if (!isPasswordValid) {
-                        throw new Error("Invalid credentials");
+                        return new Error("Invalid credentials");
                     }
 
                     console.log('User successfully authenticated:', user);
