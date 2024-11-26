@@ -41,9 +41,6 @@ const options = {
                     if (!isPasswordValid) {
                         return new Error("Invalid credentials");
                     }
-
-                    console.log('User successfully authenticated:', user);
-
                     // Return user details for JWT and session
                     return { id: user._id, role: user.role };
                 } catch (error) {
