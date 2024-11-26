@@ -1,9 +1,11 @@
 import { getToken } from 'next-auth/jwt';
 import { NextResponse } from 'next/server';
+// export { auth as middleware } from "@/auth/auth"
 
 export async function middleware(req) {
     try {
         const { pathname } = req.nextUrl;
+        console.log(`Route: ${pathname}`);
 
         // Define public routes that don't require authentication
         const publicRoutes = [
