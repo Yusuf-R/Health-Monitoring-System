@@ -52,6 +52,8 @@
 
         "cloudinary": "^2.5.1",
 
+        "date-fns": "^4.1.0",
+
         "dayjs": "^1.11.13",
 
         "firebase": "^11.0.2",

@@ -1,7 +1,8 @@
-import { axiosPublic, axiosPrivate } from "@/utils/AxiosInstance";
-import { userDataStore, healthWorkerDataStore, stakeholderDataStore } from "@/store/profileDataStore"
+import {axiosPrivate, axiosPublic} from "@/utils/AxiosInstance";
+import {healthWorkerDataStore, stakeholderDataStore, userDataStore} from "@/store/profileDataStore"
 import nacl from "tweetnacl";
-import { encodeBase64, decodeBase64, decodeUTF8 } from "tweetnacl-util";
+import {decodeBase64, decodeUTF8, encodeBase64} from "tweetnacl-util";
+
 const publicKeyBase64 = process.env.NEXT_PUBLIC_TWEETNACL_PUBLIC_KEY;
 
 class AdminUtils {
@@ -9,6 +10,7 @@ class AdminUtils {
     // to be used for Registration. Login and SetPassword Specific operations
     static async encryptCredentials(data) {
         const publicKeyPem = process.env.NEXT_PUBLIC_ENCRYPTION_PUBLIC_KEY;
+
         function pemToArrayBuffer(pem) {
             const b64 = pem.replace(/-----BEGIN PUBLIC KEY-----|-----END PUBLIC KEY-----|\n|\r/g, '');
             const binary = window.atob(b64);
@@ -29,15 +31,15 @@ class AdminUtils {
             const importedKey = await window.crypto.subtle.importKey(
                 "spki",
                 publicKeyBuffer, {
-                name: "RSA-OAEP",
-                hash: "SHA-256",
-            },
+                    name: "RSA-OAEP",
+                    hash: "SHA-256",
+                },
                 false, ["encrypt"]
             );
 
             const encryptedData = await window.crypto.subtle.encrypt({
-                name: "RSA-OAEP"
-            },
+                    name: "RSA-OAEP"
+                },
                 importedKey,
                 dataBuffer
             );
@@ -63,6 +65,7 @@ class AdminUtils {
         };
 
     }
+
     static async dataDecryption(obj) {
         try {
             const response = await axiosPublic({
@@ -76,7 +79,7 @@ class AdminUtils {
                 throw new Error(response.error);
             }
         } catch (error) {
-            console.log({ error });
+            console.log({error});
             throw new Error(error);
         }
     }
@@ -113,7 +116,7 @@ class AdminUtils {
                 throw new Error(response.error);
             }
         } catch (error) {
-            console.log({ error });
+            console.log({error});
             throw new Error(error);
         }
     }
@@ -125,14 +128,13 @@ class AdminUtils {
                 url: '/user/login',
                 data: obj,
             });
-            console.log(response.data);
             if (response.status === 201) {
                 return response.data.data;
             } else {
                 throw new Error(response.error);
             }
         } catch (error) {
-            console.log({ error });
+            console.log({error});
             throw new Error(error);
         }
     }
@@ -149,7 +151,7 @@ class AdminUtils {
                 throw new Error(response.error);
             }
         } catch (error) {
-            console.log({ error });
+            console.log({error});
             throw new Error(error);
         }
     }
@@ -166,7 +168,7 @@ class AdminUtils {
                 throw new Error(response.error);
             }
         } catch (error) {
-            console.log({ error });
+            console.log({error});
             throw new Error(error);
         }
     }
@@ -184,7 +186,7 @@ class AdminUtils {
                 throw new Error(response.error);
             }
         } catch (error) {
-            console.log({ error });
+            console.log({error});
             throw new Error(error);
         }
     }
@@ -210,8 +212,7 @@ class AdminUtils {
                 console.error('Upload response:', response);
                 throw new Error(response.data?.error || 'Upload failed');
             }
-        }
-        catch (error) {
+        } catch (error) {
             console.error('Upload error:', error);
             throw error;
         }
@@ -230,7 +231,7 @@ class AdminUtils {
                 throw new Error(response.error);
             }
         } catch (error) {
-            console.log({ error });
+            console.log({error});
             throw new Error(error);
         }
     }
@@ -248,7 +249,7 @@ class AdminUtils {
                 throw new Error(response.error);
             }
         } catch (error) {
-            console.log({ error });
+            console.log({error});
             throw new Error(error);
         }
     }
@@ -266,11 +267,64 @@ class AdminUtils {
                 throw new Error(response.error);
             }
         } catch (error) {
-            console.log({ error });
+            console.log({error});
             throw new Error(error);
         }
     }
 
+    // Medical History
+    static async createMedicalHistoryRecord(obj) {
+        try {
+            const response = await axiosPrivate({
+                method: "POST",
+                url: '/user/medical-history/create',
+                data: obj,
+            });
+            if (response.status === 201) {
+                return response.data;
+            } else {
+                return new Error(response.error);
+            }
+        } catch (error) {
+            console.log({error});
+            throw new Error(error);
+        }
+    }
+
+    static async getMedicalHistoryRecord() {
+        try {
+            const response = await axiosPrivate({
+                method: "GET",
+                url: '/user/medical-history/get',
+            });
+            if (response.status === 200) {
+                return response.data.data;
+            } else {
+                return new Error(response.error);
+            }
+        } catch (error) {
+            console.log({error});
+            throw new Error(error);
+        }
+    }
+
+    static async updateMedicalHistoryRecord(obj) {
+        try {
+            const response = await axiosPrivate({
+                method: "PATCH",
+                url: '/user/medical-history/update',
+                data: obj,
+            });
+            if (response.status === 201) {
+                return response.data.data;
+            } else {
+                return new Error(response.error);
+            }
+        } catch (error) {
+            console.log({error});
+            throw new Error(error);
+        }
+    }
 
 
     // health worker section
@@ -284,13 +338,12 @@ class AdminUtils {
                 data: obj,
             });
             if (response.status === 201) {
-                console.log({response});
                 return response.data.data;
             } else {
-                throw new Error(response.error);
+                throw new Error(response?.error);
             }
         } catch (error) {
-            console.log({ error });
+            console.log({error});
             throw new Error(error);
         }
     }
@@ -308,7 +361,7 @@ class AdminUtils {
                 throw new Error(response.error);
             }
         } catch (error) {
-            console.log({ error });
+            console.log({error});
             throw new Error(error);
         }
     }
@@ -325,7 +378,7 @@ class AdminUtils {
                 throw new Error(response.error);
             }
         } catch (error) {
-            console.log({ error });
+            console.log({error});
             throw new Error(error);
         }
     }
@@ -342,7 +395,7 @@ class AdminUtils {
                 throw new Error(response.error);
             }
         } catch (error) {
-            console.log({ error });
+            console.log({error});
             throw new Error(error);
         }
     }
@@ -368,14 +421,11 @@ class AdminUtils {
                 console.error('Upload response:', response);
                 return new Error(response.data?.error || 'Upload failed');
             }
-        }
-        catch (error) {
+        } catch (error) {
             console.error('Upload error:', error);
             throw error;
         }
     }
-
-
 
 
 }

@@ -60,7 +60,7 @@ const months = [
   "November",
 ];
 
-function HealthTrendsInfographic() {
+function DashboardHealthTrendsInfographic() {
   const [selectedOutbreak, setSelectedOutbreak] = useState("Lassa Fever");
 
   const handleTabChange = (event, newValue) => {
@@ -149,4 +149,4 @@ function HealthTrendsInfographic() {
   );
 }
 
-export default HealthTrendsInfographic;
+export default DashboardHealthTrendsInfographic;

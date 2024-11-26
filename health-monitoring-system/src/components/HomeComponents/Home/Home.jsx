@@ -91,7 +91,7 @@ const Home = () => {
                 WebkitTextFillColor: "transparent",
               }}
             >
-              Welcome to Community Health Monitor
+              Welcome to Community Health Monitoring System
             </Typography>
             <Typography
               variant="subtitle1"
@@ -166,7 +166,7 @@ const Home = () => {
             variant="h4"
             sx={{ fontWeight: "bold", mb: 2 }}
           >
-            Why Choose Community Health Monitor?
+            Why Choose Community Health Monitoring System?
           </Typography>
           <Typography
             variant="body1"

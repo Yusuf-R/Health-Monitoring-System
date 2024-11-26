@@ -37,6 +37,16 @@ function TopNav({ onToggleSideNav, userProfile }) {
         setAnchorEl(event.currentTarget);
     };
 
+    const handleSettings = () => {
+        setAnchorEl(null); // Close the dropdown menu when logout is clicked
+        router.push('/user/settings');
+    }
+
+    const handleProfile = () => {
+        router.push('/user/settings/profile');
+        setAnchorEl(null); // Close the dropdown menu when logout is clicked
+    }
+
     const handleMenuClose = () => {
         setAnchorEl(null);
     };
@@ -134,13 +144,13 @@ function TopNav({ onToggleSideNav, userProfile }) {
                         sx: { mt: 1.5, overflow: "visible" },
                     }}
                 >
-                    <MenuItem onClick={handleMenuClose}>
+                    <MenuItem onClick={handleProfile}>
                         <ListItemIcon>
                             <PersonIcon fontSize="small" />
                         </ListItemIcon>
                         Profile
                     </MenuItem>
-                    <MenuItem onClick={handleMenuClose}>
+                    <MenuItem onClick={handleSettings}>
                         <ListItemIcon>
                             <SettingsIcon fontSize="small" />
                         </ListItemIcon>

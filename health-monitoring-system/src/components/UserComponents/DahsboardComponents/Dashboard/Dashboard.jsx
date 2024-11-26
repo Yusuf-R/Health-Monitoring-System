@@ -1,11 +1,11 @@
 'use client'
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
-import News from "@/components/UserComponents/DahsboardComponents/News/News";
-import HealthInsights from "@/components/UserComponents/DahsboardComponents/HealthInsights/HealthInsights";
+import DashboardNews from "@/components/UserComponents/DahsboardComponents/DashboardNews/DashboardNews";
+import DashboardHealthInsights from "@/components/UserComponents/DahsboardComponents/DashboardHealthInsights/DashboardHealthInsights";
 import Tools from "@/components/UserComponents/DahsboardComponents/Tools/Tools";
-import HealthTrendsInfographic from "../HealthTrendsInfographic/HealthTrendsInfographic";
-import CommunityHealthHub from "@/components/UserComponents/DahsboardComponents/CommunityHealthHub/CommunityHealthHub";
+import DashboardHealthTrendsInfographic from "@/components/UserComponents/DahsboardComponents/DashboardHealthTrendsInfographic/DashboardHealthTrendsInfographic";
+import DashboardCommunityHealthHub from "@/components/UserComponents/DahsboardComponents/DashboardCommunityHealthHub/DashboardCommunityHealthHub";
 import { useState, useEffect } from "react"
 import { usePathname, useRouter } from "next/navigation";
 import { Link } from "next/link";
@@ -84,7 +84,7 @@ function Dashboard() {
               }}
             />
             <Tab
-              label="News"
+              label="DashboardNews"
               href="/user/dashboard/news"
               value="/user/dashboard/news"
               sx={{
@@ -127,13 +127,13 @@ function Dashboard() {
           </Tabs>
         </Stack>
         {/*ParentBox*/}
-        <News />
-        <HealthInsights />
+        <DashboardNews />
+        <DashboardHealthInsights />
         <Tools />
         <br/>
-        <HealthTrendsInfographic />
+        <DashboardHealthTrendsInfographic />
         <br />
-        <CommunityHealthHub />
+        <DashboardCommunityHealthHub />
         <br />
       </Box >
     </>

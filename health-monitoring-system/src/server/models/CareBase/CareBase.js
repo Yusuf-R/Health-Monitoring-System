@@ -128,6 +128,7 @@ const GeoLocationSchema = new mongoose.Schema({
     description: { type: String, default: "" },
 }, { _id: true });
 
+
 // Initialize CareBase and its child models
 const getCareBaseModels = async () => {
     await connectDB();
@@ -146,7 +147,6 @@ const getCareBaseModels = async () => {
         bloodGroup: { type: String, enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'], default: 'Unknown' },
         genotype: { type: String, enum: ['AA', 'AS', 'AC', 'SS', 'SC', 'CC', 'Unknown'], default: 'Unknown' },
         allergies: { type: [String], default: [] },
-        medicalHistory: { type: [String], default: [] },
         medication: { type: [String], default: [] },
         familyHistory: { type: [String], default: [] },
         dietaryRequirements: { type: [String], default: [] },

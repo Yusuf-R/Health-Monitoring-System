@@ -133,7 +133,7 @@ function NewsHeader() {
     );
 }
 
-function News() {
+function DashboardNews() {
     return (
         <Box
             sx={{
@@ -230,4 +230,4 @@ function News() {
     );
 }
 
-export default News;
+export default DashboardNews;
