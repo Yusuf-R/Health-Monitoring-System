@@ -14,7 +14,7 @@ function GetStarted() {
 
     const handleGetStarted = () => {
         setLoading(true);
-        router.push('/user/profile/update');
+        router.push('/user/settings/profile/update');
     };
 
     return (
