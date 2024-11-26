@@ -33,10 +33,12 @@ export async function middleware(req) {
 
         if (!token) {
             console.error('No token found for protected route');
+            console.log({token});
             return NextResponse.redirect(new URL('/', req.url));
         }
 
         const userRole = token.role;
+        console.log({token});
 
         // Role-based access logic for frontend paths
         const rolePaths = {
