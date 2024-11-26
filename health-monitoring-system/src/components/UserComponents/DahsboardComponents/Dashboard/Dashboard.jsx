@@ -16,7 +16,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 
 
 
-function Dashboard() {
+function Dashboard({userProfile}) {
   const [activeTab, setActiveTab] = useState("/user/dashboard");
   const pathname = usePathname();
   const router = useRouter();
@@ -127,7 +127,7 @@ function Dashboard() {
           </Tabs>
         </Stack>
         {/*ParentBox*/}
-        <DashboardNews />
+        <DashboardNews userName={userProfile.firstName} />
         <DashboardHealthInsights />
         <Tools />
         <br/>
