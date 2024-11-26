@@ -6,7 +6,7 @@ import VolunteerActivismIcon from "@mui/icons-material/VolunteerActivism";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import HealthAndSafetyIcon from "@mui/icons-material/HealthAndSafety";
 
-function CommunityHealthHub() {
+function DashboardCommunityHealthHub() {
   return (
     <Box sx={{ py: 6, px: 3, background: "linear-gradient(to bottom, #ffffff, #f3f4f6)" }}>
       <Typography
@@ -135,4 +135,4 @@ function CommunityHealthHub() {
   );
 }
 
-export default CommunityHealthHub;
+export default DashboardCommunityHealthHub;

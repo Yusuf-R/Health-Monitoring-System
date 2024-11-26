@@ -106,7 +106,7 @@ export default function FullArticle({id}) {
                     centered
                 >
                     <Tab
-                        label="News"
+                        label="DashboardNews"
                         value="/user/info-hub/news" // The route for the main news list
                         sx={tabProps}
                     />

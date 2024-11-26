@@ -56,7 +56,7 @@ const chartOptions = {
 };
 
 // Health Insights Component
-function HealthInsights() {
+function DashboardHealthInsights() {
     return (
         <Box sx={{ py: 4, px: 2 }}>
             <Typography
@@ -246,4 +246,4 @@ function HealthInsights() {
     );
 }
 
-export default HealthInsights;
+export default DashboardHealthInsights;

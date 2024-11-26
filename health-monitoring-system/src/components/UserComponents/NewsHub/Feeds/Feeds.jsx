@@ -163,7 +163,7 @@ export default function Feeds({userProfile}) {
 
     return (
         <>
-            <Container maxWidth="xl" sx={{py: 4}}>
+            <Container maxWidth="xl" sx={{py: 2, m: 0}}>
                 {/* Tabs Section */}
                 <Stack
                     elevation={3}
