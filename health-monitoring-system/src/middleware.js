@@ -1,6 +1,5 @@
 import { getToken } from 'next-auth/jwt';
 import { NextResponse } from 'next/server';
-// export { auth as middleware } from "@/auth/auth"
 
 export async function middleware(req) {
     try {
@@ -31,10 +30,6 @@ export async function middleware(req) {
                 process.env.NODE_ENV === 'production'
                     ? '__Secure-next-auth.session-token'
                     : 'next-auth.session-token',
-            salt:
-                process.env.NODE_ENV === "production"
-                    ? "__Secure-authjs.session-token"
-                    : "authjs.session-token",
         });
 
         if (!token) {
