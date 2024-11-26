@@ -30,7 +30,6 @@ export async function middleware(req) {
                 process.env.NODE_ENV === 'production'
                     ? '__Secure-next-auth.session-token'
                     : 'next-auth.session-token',
-            raw: true,
         });
 
         if (!token) {
