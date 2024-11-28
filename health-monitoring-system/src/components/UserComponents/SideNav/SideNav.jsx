@@ -225,17 +225,17 @@ function SideNav({navState, activeRoute}) {
                     )}
                     {showText && <ListItemText primary="Inbox"/>}
                 </ListItem>
-                <ListItem
-                    onClick={() => handleNavigation("/user/tools/notifications")}
-                    sx={{...hoverStyle, ...(activeRoute === "/user/tools/notifications" ? activeStyle : {})}}
-                >
-                    {showIcons && (
-                        <ListItemIcon sx={{color: "gold"}}>
-                            <NotificationsIcon/>
-                        </ListItemIcon>
-                    )}
-                    {showText && <ListItemText primary="Notifications"/>}
-                </ListItem>
+                {/*<ListItem*/}
+                {/*    onClick={() => handleNavigation("/user/tools/notifications")}*/}
+                {/*    sx={{...hoverStyle, ...(activeRoute === "/user/tools/notifications" ? activeStyle : {})}}*/}
+                {/*>*/}
+                {/*    {showIcons && (*/}
+                {/*        <ListItemIcon sx={{color: "gold"}}>*/}
+                {/*            <NotificationsIcon/>*/}
+                {/*        </ListItemIcon>*/}
+                {/*    )}*/}
+                {/*    {showText && <ListItemText primary="Notifications"/>}*/}
+                {/*</ListItem>*/}
 
                 <ListItem
                     onClick={() => handleNavigation("/user/tools/chat")}
