@@ -49,7 +49,7 @@ const features = [
         title: "Connect with Doctors",
         description: "Reach out to healthcare professionals for tailored advice.",
         icon: <HospitalIcon />,
-        route: '/user/settings/chats',
+        route: '/user/tools/chat',
         btnColor: '#9C27B0',
     },
 ];

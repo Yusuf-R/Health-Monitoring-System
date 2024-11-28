@@ -32,11 +32,11 @@ function Dashboard({userProfile}) {
 
   useEffect(() => {
     if (pathname.includes('news')) {
-      setActiveTab('/user/dashboard/news');
+      setActiveTab('/user/info-hub/news');
     } else if (pathname.includes('feeds')) {
-      setActiveTab('/user/dashboard/feeds');
+      setActiveTab('/user/info-hub/feeds');
     } else if (pathname.includes('tips')) {
-      setActiveTab('/user/dashboard/tips');
+      setActiveTab('/user/info-hub/tips');
     } else {
       setActiveTab('/user/dashboard');
     }
@@ -84,9 +84,9 @@ function Dashboard({userProfile}) {
               }}
             />
             <Tab
-              label="DashboardNews"
-              href="/user/dashboard/news"
-              value="/user/dashboard/news"
+              label="News"
+              href="/user/info-hub/news"
+              value="/user/info-hub/news"
               sx={{
                 color: "#FFF",
                 fontWeight: 'bold',
@@ -99,8 +99,8 @@ function Dashboard({userProfile}) {
             <Tab
               label="Feeds"
               component={Link}
-              href="/user/dashboard/feeds"
-              value="/user/dashboard/feeds"
+              href="/user/info-hub/feeds"
+              value="/user/info-hub/feeds"
               sx={{
                 color: "#FFF",
                 fontWeight: 'bold',
@@ -113,8 +113,8 @@ function Dashboard({userProfile}) {
             <Tab
               label="Tips"
               component={Link}
-              href="/user/dashboard/tips"
-              value="/user/dashboard/tips"
+              href="/user/info-hub/tips-guides"
+              value="/user/info-hub/tips-guides"
               sx={{
                 color: "#FFF",
                 fontWeight: 'bold',

@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { doc, getDoc, updateDoc, arrayUnion, setDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, arrayUnion, setDoc, collection, addDoc, increment, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/server/db/fireStore';
 import {
     Box,
@@ -91,6 +91,53 @@ export default function FullHealthCheckPage({ userProfile, id }) {
         checkVoteStatus();
     }, [condition?.id, userProfile._id]);
 
+    const createMessage = async (healthCheckData) => {
+        try {
+            const messagesRef = collection(db, 'messages');
+            const messageData = {
+                senderId: 'system',
+                senderName: 'Health System',
+                receiverId: userProfile._id,
+                content: `Thank you for submitting your health check request. Our specialist will contact you soon regarding your condition: ${healthCheckData.conditionTitle}.`,
+                type: 'health_check_notification',
+                read: false,
+                timestamp: serverTimestamp(), // Use serverTimestamp for consistency
+                createdAt: serverTimestamp(),
+                metadata: {
+                    healthCheckId: healthCheckData.healthIssueId,
+                    category: healthCheckData.category,
+                    severity: healthCheckData.severity
+                }
+            };
+
+            // Create the message
+            const messageRef = await addDoc(messagesRef, messageData);
+
+            // Create a notification for the message
+            const notificationsRef = collection(db, 'notifications');
+            const notificationData = {
+                userId: userProfile._id,
+                type: 'new_message',
+                title: 'New Health Check Response',
+                message: `Response to your health check request for: ${healthCheckData.conditionTitle}`,
+                status: 'unread',
+                actionUrl: '/inbox',
+                createdAt: serverTimestamp(),
+                metadata: {
+                    messageId: messageRef.id,
+                    healthCheckId: healthCheckData.healthIssueId,
+                    category: healthCheckData.category
+                }
+            };
+
+            await addDoc(notificationsRef, notificationData);
+            toast.success("You will be contacted by a specialist soon!");
+        } catch (error) {
+            console.error('Error creating message:', error);
+            toast.error("Failed to create notification");
+        }
+    };
+
     const mutationCreateMedicalRecord = useMutation({
         mutationKey: ['CreateMedicalRecord'],
         mutationFn: AdminUtils.createMedicalHistoryRecord,
@@ -146,15 +193,22 @@ export default function FullHealthCheckPage({ userProfile, id }) {
 
         try {
             const healthConditionRef = doc(db, 'healthConditions', condition.id);
-            const healthConditionSnap = await getDoc(healthConditionRef);
+            const voteData = {
+                userId: userProfile._id,
+                timestamp: new Date(),
+                userRequest: {
+                    status: 'pending', // Track the request status
+                    requestId: condition.id
+                }
+            };
 
             await updateDoc(healthConditionRef, {
-                votes: arrayUnion({ userId: userProfile._id, timestamp: new Date() }),
-                pollCount: (healthConditionSnap.data()?.pollCount || 0) + 1,
+                votes: arrayUnion(voteData),
+                voteCount: increment(1)
             });
 
             setHasVoted(true);
-            toast.success("Your vote has been recorded!");
+            toast.success("Vote submitted successfully");
         } catch (error) {
             console.error('Error submitting vote:', error);
             toast.error("Failed to submit vote");
@@ -162,35 +216,56 @@ export default function FullHealthCheckPage({ userProfile, id }) {
     };
 
     const handleSubmitRequest = async () => {
-        if (!userProfile || !condition) return;
-
-        const requestData = {
-            userId: userProfile._id,
-            healthIssueId: condition.id,
-            message: personalMessage || null,
-            timestamp: new Date(),
-            status: 'pending',
-            conditionTitle: condition.title,
-            category: condition.category
-        };
+        if (!userProfile || !condition) {
+            return;
+        }
+        if (!personalMessage.trim()) {
+            toast.error("Please provide a message about your condition");
+            return;
+        }
 
         try {
-            // Handle user request in Firestore
+            setSubmitStatus('submitting');
+
+            // Create medical record first
+            const medicalData = {
+                userId: userProfile._id,
+                healthIssueId: condition.id,
+                conditionTitle: condition.title,
+                category: condition.category,
+                message: personalMessage,
+                status: 'pending',
+                severity: 'medium'
+            };
+
+            // Create the medical record
+            await createMedicalRecord(medicalData);
+
+            // Create the user request
             const userRequestRef = doc(db, 'userRequests', userProfile._id);
             const userRequestSnap = await getDoc(userRequestRef);
 
-            // Check for existing request first
+            const requestData = {
+                healthIssueId: condition.id,
+                message: personalMessage,
+                timestamp: new Date(),
+                status: 'pending',
+                conditionTitle: condition.title,
+                category: condition.category
+            };
+
+            // Check for existing request and handle voting
             if (userRequestSnap.exists()) {
                 const existingRequests = userRequestSnap.data()?.requests || [];
-                const duplicateRequest = existingRequests.some(
+                const activeRequest = existingRequests.find(
                     req => req.healthIssueId === condition.id && req.status === 'pending'
                 );
 
-                if (duplicateRequest) {
+                if (activeRequest) {
                     setSubmitStatus('duplicate');
                     toast.warning("A request for this condition is already pending");
 
-                    // If user wants to vote and hasn't voted yet, allow voting
+                    // Allow voting if user hasn't voted yet
                     if (polling && !hasVoted) {
                         await handleVote();
                     }
@@ -217,25 +292,16 @@ export default function FullHealthCheckPage({ userProfile, id }) {
                 });
             }
 
-            // Handle voting if requested
+            // Handle voting if requested with new request
             if (polling && !hasVoted) {
                 await handleVote();
             }
 
-            // Create medical history record
-            const medicalData = {
-                userId: userProfile._id,
-                healthIssueId: condition.id,
-                conditionTitle: condition.title,
-                category: condition.category,
-                message: personalMessage,
-                status: 'pending',
-                severity: 'medium'
-            };
+            // Create the message and notification
+            await createMessage(medicalData);
 
             setSubmitStatus('success');
             handleSuccessAndClose();
-            await createMedicalRecord(medicalData);
         } catch (error) {
             console.error('Error submitting request:', error);
             setSubmitStatus('error');
@@ -253,7 +319,9 @@ export default function FullHealthCheckPage({ userProfile, id }) {
     };
 
     const fetchCondition = async () => {
-        if (!id) return;
+        if (!id) {
+          return;
+        }
 
         try {
             const docRef = doc(db, 'healthConditions', id);
@@ -273,7 +341,9 @@ export default function FullHealthCheckPage({ userProfile, id }) {
     };
 
     const renderListSection = (items, icon, title, color = '#46F0F9', bulletStyle = '•') => {
-        if (!items?.length) return null;
+        if (!items?.length) {
+          return null;
+        }
 
         return (
             <Grid  size={{xs:12, md:6}}>
@@ -320,38 +390,44 @@ export default function FullHealthCheckPage({ userProfile, id }) {
         );
     };
 
-    if (loading) return <CircularProgress sx={{ color: '#46F0F9' }} />;
-    if (error) return (
-        <Container maxWidth="xl" sx={{ py: 4 }}>
-            <Paper
-                elevation={3}
-                sx={{
-                    p: 4,
-                    textAlign: 'center',
-                    bgcolor: theme.palette.mode === 'dark' ? alpha('#000', 0.6) : alpha('#fff', 0.8),
-                }}
-            >
-                <Stack spacing={2} alignItems="center">
-                    <WarningIcon sx={{ fontSize: 60, color: '#ff6b6b' }} />
-                    <Typography variant="h5" color="error">
-                        {error}
-                    </Typography>
-                    <Button
-                        variant="contained"
-                        startIcon={<BackIcon />}
-                        onClick={() => router.back()}
-                        sx={{
-                            bgcolor: '#46F0F9',
-                            '&:hover': { bgcolor: alpha('#46F0F9', 0.8) }
-                        }}
-                    >
-                        Go Back
-                    </Button>
-                </Stack>
-            </Paper>
-        </Container>
-    );
-    if (!condition) return null;
+    if (loading) {
+      return <CircularProgress sx={{ color: '#46F0F9' }} />;
+    }
+    if (error) {
+      return (
+            <Container maxWidth="xl" sx={{ py: 4 }}>
+                <Paper
+       elevation={3}
+       sx={{
+           p: 4,
+           textAlign: 'center',
+           bgcolor: theme.palette.mode === 'dark' ? alpha('#000', 0.6) : alpha('#fff', 0.8),
+       }}
+                >
+       <Stack spacing={2} alignItems="center">
+           <WarningIcon sx={{ fontSize: 60, color: '#ff6b6b' }} />
+           <Typography variant="h5" color="error">
+               {error}
+           </Typography>
+           <Button
+               variant="contained"
+               startIcon={<BackIcon />}
+               onClick={() => router.back()}
+               sx={{
+                   bgcolor: '#46F0F9',
+                   '&:hover': { bgcolor: alpha('#46F0F9', 0.8) }
+               }}
+           >
+               Go Back
+           </Button>
+       </Stack>
+                </Paper>
+            </Container>
+        );
+    }
+    if (!condition) {
+      return null;
+    }
 
     const { content } = condition;
 

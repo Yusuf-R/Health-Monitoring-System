@@ -12,7 +12,7 @@ const UnderConstruction = () => {
         <Container maxWidth="md" sx={{ textAlign: 'center', py: 6 }}>
             <Stack spacing={4} alignItems="center">
                 <ConstructionIcon sx={{ fontSize: 80, color: '#FF9800' }} />
-                <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                <Typography variant="h4" sx={{ fontWeight: 700, color: 'gold' }}>
                     🚧 Page Under Construction 🚧
                 </Typography>
                 <Typography variant="body1" sx={{ color: '#FFF' }}>

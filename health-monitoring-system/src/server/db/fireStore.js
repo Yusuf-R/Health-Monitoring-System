@@ -1,7 +1,8 @@
-// lib/database/firebaseConfig.js
-import { initializeApp } from 'firebase/app';
+// import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
-import { getDatabase } from 'firebase/database';
+import { getAuth } from 'firebase/auth';
+
 
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -12,9 +13,20 @@ const firebaseConfig = {
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase app
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase
+let app;
 
-// Export Firestore and Realtime Database instances
-export const db = getFirestore(app); // Firestore instance
-export const database = getDatabase(app); // Realtime Database instance
+if (!getApps().length) {
+    app = initializeApp(firebaseConfig);
+} else {
+    app = getApps()[0];
+}
+
+// Initialize Firestore
+export const db = getFirestore(app);
+
+// Initialize Auth
+export const auth = getAuth(app);
+
+// Export the app instance if needed elsewhere
+export default app;
