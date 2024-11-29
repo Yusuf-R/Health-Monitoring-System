@@ -121,7 +121,7 @@ export default function FullHealthCheckPage({ userProfile, id }) {
                 title: 'New Health Check Response',
                 message: `Response to your health check request for: ${healthCheckData.conditionTitle}`,
                 status: 'unread',
-                actionUrl: '/inbox',
+                actionUrl: '/user/tools/inbox',
                 createdAt: serverTimestamp(),
                 metadata: {
                     messageId: messageRef.id,

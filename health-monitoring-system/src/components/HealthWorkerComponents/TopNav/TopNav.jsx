@@ -19,12 +19,12 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import Button from "@mui/material/Button";
-import {useMutation} from "@tanstack/react-query";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {toast} from "sonner";
 import AdminUtils from "@/utils/AdminUtils";
 import {signOut} from 'next-auth/react';
 import {CircularProgress} from "@mui/material";
-import {collection, doc, onSnapshot, updateDoc, query, where, orderBy, serverTimestamp} from "firebase/firestore";
+import {collection, doc, onSnapshot, orderBy, query, serverTimestamp, updateDoc, where} from "firebase/firestore";
 import {db} from "@/server/db/fireStore";
 import Badge from "@mui/material/Badge";
 import Drawer from "@mui/material/Drawer";
@@ -32,18 +32,20 @@ import {Circle as UnreadIcon, Close as CloseIcon, Notifications as Notifications
 import {usePathname, useRouter} from "next/navigation";
 import ListItem from "@mui/material/ListItem";
 import List from "@mui/material/List";
-import { format } from 'date-fns';
+import {format} from 'date-fns';
 
-function TopNav({onToggleSideNav, userProfile}) {
+function TopNav({onToggleSideNav, healthWorkerProfile}) {
     const [anchorEl, setAnchorEl] = useState(null);
+    const [statusAnchorEl, setStatusAnchorEl] = useState(null);
     const [confirmExit, setConfirmExit] = useState(false);
     const [loggingOut, setLoggingOut] = useState(false);
     const [notificationsEl, setNotificationsEl] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
-    const [userStatus, setUserStatus] = useState('offline');
     const router = useRouter();
+    const [status, setStatus] = useState("offline"); // Default to offline
     const pathname = usePathname();
+    const queryClient = useQueryClient();
 
     const formatTimestamp = (timestamp) => {
         if (!timestamp || !timestamp.toDate) {
@@ -64,14 +66,100 @@ function TopNav({onToggleSideNav, userProfile}) {
         busy: '#ff9800'     // Yellow
     };
 
+    // Listen to Firestore for real-time status updates
+    useEffect(() => {
+        if (!healthWorkerProfile?._id) {
+            console.error("Health worker ID is missing");
+            return;
+        }
+
+        const healthWorkerRef = doc(db, "healthWorkers", healthWorkerProfile._id);
+
+        // Subscribe to Firestore document changes
+        const unsubscribe = onSnapshot(healthWorkerRef, (docSnapshot) => {
+            if (docSnapshot.exists()) {
+                const data = docSnapshot.data();
+                setStatus(data.status || "offline"); // Update the status state
+            } else {
+                console.warn("No document found for health worker in Firestore");
+                setStatus("offline");
+            }
+        });
+
+        // Cleanup subscription on component unmount
+        return () => unsubscribe();
+    }, [healthWorkerProfile?._id]);
+
+    // Update health worker status
+    const updateStatus = async (newStatus) => {
+        if (!healthWorkerProfile?._id) {
+            console.error('Invalid health worker profile:', healthWorkerProfile);
+            return;
+        }
+        try {
+            const healthWorkerRef = doc(db, "healthWorkers", healthWorkerProfile._id);
+
+            await updateDoc(healthWorkerRef, {
+                status: newStatus,
+                lastUpdated: serverTimestamp()
+            });
+
+            setStatusAnchorEl(null);
+            toast.success(`Status updated to ${newStatus}`, {
+                style: {
+                    backgroundColor: statusColors[newStatus],
+                    color: '#fff'
+                }
+            });
+        } catch (error) {
+            console.error('Error updating status:', error);
+            toast.error('Failed to update status');
+        }
+    };
+
+    // Handle status click
+    const handleStatusClick = (event) => {
+        setStatusAnchorEl(event.currentTarget);
+        handleMenuClose();
+    };
+
+    // Handle status close
+    const handleStatusClose = () => {
+        setStatusAnchorEl(null);
+    };
+
+    // Handle logout with status update
+    const handleLogout = async () => {
+        try {
+            setLoggingOut(true);
+
+            // Update status to offline before logging out
+            if (healthWorkerProfile?._id) {
+                const healthWorkerRef = doc(db, "healthWorkers", healthWorkerProfile._id);
+                await updateDoc(healthWorkerRef, {
+                    status: 'offline',
+                    lastUpdated: serverTimestamp()
+                });
+            }
+
+            mutation.mutate();
+        } catch (err) {
+            console.error('Logout error:', err);
+            toast.error('Logout failed. Please try again.');
+            setLoggingOut(false);
+        }
+    };
+
     // Fetch notifications in real-time
     useEffect(() => {
-        if (!userProfile?._id) return;
+        if (!healthWorkerProfile?._id) {
+            return;
+        }
 
         const notificationsRef = collection(db, "notifications");
         const q = query(
             notificationsRef,
-            where("userId", "==", userProfile._id),
+            where("userId", "==", healthWorkerProfile._id),
             orderBy("createdAt", "desc")
         );
 
@@ -85,21 +173,7 @@ function TopNav({onToggleSideNav, userProfile}) {
         });
 
         return () => unsubscribe();
-    }, [userProfile?._id]);
-
-    // Listen to user's online status
-    useEffect(() => {
-        if (!userProfile?._id) return;
-
-        const userRef = doc(db, "users", userProfile._id);
-        const unsubscribe = onSnapshot(userRef, (doc) => {
-            if (doc.exists()) {
-                setUserStatus(doc.data()?.status || 'offline');
-            }
-        });
-
-        return () => unsubscribe();
-    }, [userProfile?._id]);
+    }, [healthWorkerProfile?._id]);
 
     // Mark a single notification as read
     const handleMarkAsRead = async (notificationId) => {
@@ -160,11 +234,11 @@ function TopNav({onToggleSideNav, userProfile}) {
 
     const handleSettings = () => {
         setAnchorEl(null); // Close the dropdown menu when logout is clicked
-        router.push('/user/settings');
+        router.push('/health-worker/settings');
     }
 
     const handleProfile = () => {
-        router.push('/user/settings/profile');
+        router.push('/health-worker/settings/profile');
         setAnchorEl(null); // Close the dropdown menu when logout is clicked
     }
 
@@ -179,9 +253,9 @@ function TopNav({onToggleSideNav, userProfile}) {
 
     const mutation = useMutation({
         mutationKey: ['Logout'],
-        mutationFn: AdminUtils.userLogout,
+        mutationFn: AdminUtils.healthWorkerLogout,
         onSuccess: async () => {
-            await signOut({callbackUrl: '/authorization/user'}); // Redirects after logout
+            await signOut({callbackUrl: '/authorization/health-worker'}); // Redirects after logout
             toast.success('Logged out successfully');
             setConfirmExit(false); // Close dialog
             setLoggingOut(false);
@@ -192,17 +266,6 @@ function TopNav({onToggleSideNav, userProfile}) {
             setLoggingOut(false);
         },
     });
-
-    const handleLogout = () => {
-        try {
-            setLoggingOut(true);
-            mutation.mutate();
-        } catch (err) {
-            console.error('Logout error:', err);
-            toast.error('Logout failed. Please try again.');
-            setLoggingOut(false);
-        }
-    };
 
     return (
         <>
@@ -234,7 +297,36 @@ function TopNav({onToggleSideNav, userProfile}) {
 
                 {/* Right Section */}
                 <Box sx={{display: "flex", alignItems: "center", gap: 1}}>
-                    {/* Notifications */}
+
+                    <Box sx={{textAlign: "left", display: "block", alignItems: "center", gap: 1}}>
+                        <Typography variant="body1" sx={{fontWeight: "bold", color: '#FFF'}}>
+                            Hi {healthWorkerProfile?.firstName || "HealthWorker"}
+                        </Typography>
+                        <Box
+                            onClick={handleStatusClick}
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                cursor: 'pointer',
+                                '&:hover': {opacity: 0.8}
+                            }}
+                        >
+                            <Box
+                                sx={{
+                                    width: 8,
+                                    height: 8,
+                                    borderRadius: '50%',
+                                    backgroundColor: statusColors[status],
+                                    mr: 1
+                                }}
+                            />
+                            <Typography variant="body2" color="#FFF" sx={{textTransform: 'capitalize'}}>
+                                {status}
+                            </Typography>
+                            <ArrowDropDownIcon sx={{color: '#FFF'}}/>
+                        </Box>
+                    </Box>
+                    {/* Notifications Bell */}
                     <IconButton
                         aria-label="Notifications"
                         onClick={() => setNotificationsEl(true)}
@@ -244,46 +336,12 @@ function TopNav({onToggleSideNav, userProfile}) {
                             <NotificationsIcon/>
                         </Badge>
                     </IconButton>
-                    <Box sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        mr: 2,
-                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                        borderRadius: '20px',
-                        padding: '4px 12px'
-                    }}>
-                        <Box
-                            sx={{
-                                width: 8,
-                                height: 8,
-                                borderRadius: '50%',
-                                backgroundColor: userStatus === 'online' ? '#4CAF50' : '#757575',
-                                mr: 1
-                            }}
-                        />
-                        <Typography
-                            variant="body2"
-                            sx={{
-                                color: 'white',
-                                textTransform: 'capitalize'
-                            }}
-                        >
-                            {userStatus}
-                        </Typography>
-                    </Box>
                     <Avatar
-                        src={userProfile?.avatar ? userProfile.avatar :  "/av-1.svg"}
+                        src={healthWorkerProfile?.avatar || "/av-1.svg"}
                         alt="User Avatar"
                         sx={{width: 50, height: 50}}
                     />
-                    <Box sx={{textAlign: "left"}}>
-                        <Typography variant="body1" sx={{fontWeight: "bold", color: '#FFF'}}>
-                            {userProfile?.firstName || "User Name"}
-                        </Typography>
-                        <Typography variant="body2" color="#FFF">
-                            Profile
-                        </Typography>
-                    </Box>
+
                     <IconButton aria-label="Open profile menu" onClick={handleMenuOpen}>
                         <ArrowDropDownIcon sx={{color: '#FFF'}}/>
                     </IconButton>
@@ -317,6 +375,50 @@ function TopNav({onToggleSideNav, userProfile}) {
                             </ListItemIcon>
                             Logout
                         </MenuItem>
+                    </Menu>
+
+                    {/* Status Menu */}
+                    <Menu
+                        anchorEl={statusAnchorEl}
+                        open={Boolean(statusAnchorEl)}
+                        onClose={handleStatusClose}
+                        PaperProps={{
+                            elevation: 3,
+                            sx: { mt: 1.5, p: 0.5},
+                        }}
+                    >
+                        {status === 'online' ? (
+                            [
+                                <MenuItem key="busy" onClick={() => updateStatus('busy')}>
+                                    <Box
+                                        sx={{
+                                            width: 8,
+                                            height: 8,
+                                            borderRadius: '50%',
+                                            mr: 1, // Margin to separate the dot from the text
+                                            background: statusColors.busy, // Only applies color to the dot
+
+                                        }}
+                                    />
+                                    Busy
+                                </MenuItem>,
+                            ]
+                        ) : (
+                            [
+                                <MenuItem key="online" onClick={() => updateStatus('online')}>
+                                    <Box
+                                        sx={{
+                                            width: 8,
+                                            height: 8,
+                                            borderRadius: '50%',
+                                            mr: 1, // Margin to separate the dot from the text
+                                            background: statusColors.online, // Only applies color to the dot
+                                        }}
+                                    />
+                                    Online
+                                </MenuItem>,
+                            ]
+                        )}
                     </Menu>
                 </Box>
 
@@ -357,7 +459,7 @@ function TopNav({onToggleSideNav, userProfile}) {
                     onClose={() => setNotificationsEl(false)}
                     PaperProps={{
                         sx: {
-                            width: { xs: '100%', sm: 380 },
+                            width: {xs: '100%', sm: 380},
                             background: '#f8fafc'
                         }
                     }}
@@ -374,7 +476,7 @@ function TopNav({onToggleSideNav, userProfile}) {
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'flex-start',
-                            mb: 0.5
+                            mb: unreadCount > 0 ? 1 : 0
                         }}>
                             <Typography
                                 variant="h6"
@@ -395,7 +497,7 @@ function TopNav({onToggleSideNav, userProfile}) {
                                     }
                                 }}
                             >
-                                <CloseIcon />
+                                <CloseIcon/>
                             </IconButton>
                         </Box>
                         {unreadCount > 0 && (
@@ -482,7 +584,7 @@ function TopNav({onToggleSideNav, userProfile}) {
                                     }}
                                     onClick={() => notification.status === 'unread' && handleMarkAsRead(notification.id)}
                                 >
-                                    <Box sx={{ width: '100%' }}>
+                                    <Box sx={{width: '100%'}}>
                                         <Box
                                             sx={{
                                                 display: 'flex',
@@ -543,7 +645,7 @@ function TopNav({onToggleSideNav, userProfile}) {
                                                     View Details
                                                 </Button>
                                             )}
-                                            <Box sx={{ ml: 'auto' }}>
+                                            <Box sx={{ml: 'auto'}}>
                                                 {notification.status === 'unread' && (
                                                     <IconButton
                                                         size="small"
@@ -556,7 +658,7 @@ function TopNav({onToggleSideNav, userProfile}) {
                                                             color: 'primary.main'
                                                         }}
                                                     >
-                                                        <UnreadIcon sx={{ fontSize: 12 }} />
+                                                        <UnreadIcon sx={{fontSize: 12}}/>
                                                     </IconButton>
                                                 )}
                                                 <IconButton
@@ -572,7 +674,7 @@ function TopNav({onToggleSideNav, userProfile}) {
                                                         }
                                                     }}
                                                 >
-                                                    <CloseIcon sx={{ fontSize: 16 }} />
+                                                    <CloseIcon sx={{fontSize: 16}}/>
                                                 </IconButton>
                                             </Box>
                                         </Box>

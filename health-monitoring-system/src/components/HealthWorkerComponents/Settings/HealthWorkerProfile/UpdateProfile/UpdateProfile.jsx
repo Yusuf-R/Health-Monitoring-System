@@ -1,7 +1,7 @@
 'use client'
-import { useState, useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import { useMediaQuery } from '@mui/material';
+import {useEffect, useState} from 'react';
+import {usePathname, useRouter} from 'next/navigation';
+import {CircularProgress, useMediaQuery} from '@mui/material';
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import Link from "next/link";
@@ -9,56 +9,48 @@ import Stack from "@mui/material/Stack";
 import Grid from "@mui/material/Grid2";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
-import Badge from '@mui/material/Badge';
 import Card from '@mui/material/Card';
-import Avatar from '@mui/material/Avatar';
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
-import { CircularProgress } from "@mui/material";
-import { Controller, useForm, FormProvider } from "react-hook-form";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { feProfileUpdateValidator } from "@/validators/feProfileUpdateValidator";
-import { FormControl } from "@mui/material/";
+import {Controller, useForm} from "react-hook-form";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {feHealthWorkerProfileUpdateValidator} from "@/validators/feProfileUpdateValidator";
+import {FormControl} from "@mui/material/";
 import MenuItem from "@mui/material/MenuItem";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { toast } from 'sonner';
-import PhoneInput, {
-    formatPhoneNumber,
-    formatPhoneNumberIntl,
-    isPossiblePhoneNumber,
-    isValidPhoneNumber
-} from 'react-phone-number-input';
+import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
+import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
+import {DatePicker} from "@mui/x-date-pickers/DatePicker";
+import {toast} from 'sonner';
+import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
 import FormHelperText from '@mui/material/FormHelperText';
-import styled from "@mui/material/styles/styled";
 import dayjs from "dayjs";
 import {
+    Countries,
     dobProps,
+    experienceLevels,
+    maritalStatus,
     nextOfKinRelationship,
     sex,
-    txProps,
-    maritalStatus,
+    specializations,
     statesAndLGAs,
-    Countries,
-    religionIdentity,
+    txProps,
 } from "@/utils/data"
 import AdminUtils from '@/utils/AdminUtils';
 
 
-function UpdateProfile({ userProfile }) {
+function UpdateProfile({healthWorkerProfile}) {
 
-    const [activeTab, setActiveTab] = useState('/user/profile/update');
+    const [activeTab, setActiveTab] = useState('/health-worker/settings/profile/update');
     const pathname = usePathname();
     const router = useRouter();
     const [dobDate, setDobDate] = useState(null);
     const [updating, setUpdating] = useState(false);
     const [stateOfOrigin, setStateOfOrigin] = useState('');
-    const [currStateResidence, setCurrStateResidence] = useState("")
-
+    const [currStateResidence, setCurrStateResidence] = useState("");
+    const [specialization, setSpecialization] = useState('');
+    const [yearsOfExperience, setYearsOfExperience] = useState('');
 
     // Break Points
     const xSmall = useMediaQuery('(min-width:300px) and (max-width:389.999px)');
@@ -71,14 +63,47 @@ function UpdateProfile({ userProfile }) {
 
     const isSmallScreen = useMediaQuery('(max-width:599.999px)');
 
-    const { control, handleSubmit, setValue, formState: { errors }, reset, getValues } = useForm({
+    const {control, handleSubmit, setValue, formState: {errors}, reset, getValues} = useForm({
         mode: "onTouched",
-        resolver: zodResolver(feProfileUpdateValidator),
+        resolver: zodResolver(feHealthWorkerProfileUpdateValidator),
         reValidateMode: "onChange",
         defaultValues: {
             dob: '',
         }
     });
+
+    useEffect(() => {
+        if (healthWorkerProfile) {
+            // Preload form fields with data from healthWorkerProfile
+            setValue("firstName", healthWorkerProfile.firstName || "");
+            setValue("lastName", healthWorkerProfile.lastName || "");
+            setValue("middleName", healthWorkerProfile.middleName || "");
+            setValue("email", healthWorkerProfile.email || "");
+            setValue("phoneNumber", healthWorkerProfile.phoneNumber || "");
+            setValue("maritalStatus", healthWorkerProfile.maritalStatus || "");
+            setValue("nextOfKin", healthWorkerProfile.nextOfKin || '');
+            setValue("nextOfKinRelationship", healthWorkerProfile.nextOfKinRelationship || '');
+            setValue("nextOfKinPhone", healthWorkerProfile.nextOfKinPhone || '');
+            setValue("country", healthWorkerProfile.country || "");
+            setValue("gender", healthWorkerProfile.gender || "");
+            setValue("dob", healthWorkerProfile.dob || "");
+            setValue("address", healthWorkerProfile.address || "");
+            setValue("stateOfOrigin", healthWorkerProfile.stateOfOrigin || "");
+            setValue("stateOfResidence", healthWorkerProfile.stateOfResidence || "");
+            setValue("lga", healthWorkerProfile.lga || "");
+            setValue("specialization", healthWorkerProfile.specialization || "");
+            setValue("licenseNumber", healthWorkerProfile.licenseNumber || "");
+            setValue("experienceLevel", healthWorkerProfile.experienceLevel || "");
+            setValue("hospitalAffiliation", healthWorkerProfile.hospitalAffiliation || "");
+        }
+    }, [healthWorkerProfile, setValue]);
+
+    useEffect(() => {
+        const dobValue = getValues("dob");
+        if (dobValue) {
+            setDobDate(dayjs(dobValue, "DD/MMM/YYYY"));
+        }
+    }, []);
 
     const phoneInputStyle = {
         '& .PhoneInput': {
@@ -146,197 +171,17 @@ function UpdateProfile({ userProfile }) {
         },
     }
 
-
-    useEffect(() => {
-        if (pathname.includes('update')) {
-            setActiveTab('/user/profile/update');
-        } else if (pathname.includes('avatar')) {
-            setActiveTab('/user/profile/avatar');
-        } else if (pathname.includes('location')) {
-            setActiveTab('/user/location');
-        } else {
-            setActiveTab('/user/profile');
-        }
-    }, [pathname]);
-
-    useEffect(() => {
-        if (userProfile) {
-            reset({
-                email: userProfile.email || '',
-                firstName: userProfile.firstName || '',
-                middleName: userProfile.middleName || '',
-                lastName: userProfile.lastName || '',
-                phoneNumber: userProfile.phoneNumber || '',
-                nextOfKin: userProfile.nextOfKin || '',
-                nextOfKinRelationship: userProfile.nextOfKinRelationship || '',
-                nextOfKinPhone: userProfile.nextOfKinPhone || '',
-                dob: userProfile.dob || '',
-                gender: userProfile.gender || '',
-                maritalStatus: userProfile.maritalStatus || '',
-                country: userProfile.country || '',
-                stateOfOrigin: userProfile.stateOfOrigin || '',
-                lga: userProfile.lga || '',
-                address: userProfile.address || '',
-                currStateResidence: userProfile.currStateResidence || '',
-                religion: userProfile.religion || '',
-                stateResidence: userProfile.stateResidence || '',
-                currlga: userProfile.currlga || '',
-                stateOfResidence: userProfile.stateOfResidence || '',
-                occupation: userProfile.occupation || '',
-                employmentStatus: userProfile.employmentStatus || '',
-                monthlyIncome: userProfile.monthlyIncome || '',
-            });
-        }
-    }, [userProfile, reset]);
-
-    useEffect(() => {
-        const dobValue = getValues("dob");
-        if (dobValue) {
-            setDobDate(dayjs(dobValue, "DD/MMM/YYYY"));
-        }
-    }, []);
-
-    useEffect(() => {
-            if (userProfile.stateOfOrigin && userProfile.lga) {
-                setStateOfOrigin(userProfile.stateOfOrigin);
-                setValue('stateOfOrigin', userProfile.stateOfOrigin);
-                setValue('lga', userProfile.lga);
-            }
-            if (userProfile.stateOfResidence && userProfile.currlga) {
-                setCurrStateResidence(userProfile.stateOfResidence);
-                setValue('stateOfResidence', userProfile.stateOfResidence);
-                setValue('currlga', userProfile.currlga);
-            }
-        }, [userProfile, setValue]
-    );
-
-
-    // next of Kin
-    const getNextOfKinOptions = () => {
-        return nextOfKinRelationship.map((type) => (
-            <MenuItem key={type} value={type}
-                sx={{ color: 'white', '&:hover': { backgroundColor: '#051935' } }}>{type}</MenuItem>
-        ));
-    }
-    const handleNextOfKinChange = (event) => {
-        // prevent default action of submitting the form
-        event.preventDefault();
-        setValue('nextOfKinRelationship', event.target.value);
-    }
-
-    // Gender Type
-    const getGenderType = () => {
-        return sex.map((type) => (
-            <MenuItem key={type} value={type}
-                sx={{ color: 'white', '&:hover': { backgroundColor: '#051935' } }}>{type}</MenuItem>
-        ));
-    };
-    const handleGenderTypeChange = (event) => {
-        event.preventDefault();
-        setValue('gender', event.target.value);
-    }
-
-    // Marital Status
-    const getMaritalStatusType = () => {
-        return maritalStatus.map((type) => (
-            <MenuItem key={type} value={type}
-                sx={{ color: 'white', '&:hover': { backgroundColor: '#051935' } }}>{type}</MenuItem>
-        ));
-    };
-    const handleMaritalStatusType = (event) => {
-        event.preventDefault();
-        setValue('maritalStatus', event.target.value);
-    }
-
-    // Country
-    const getCountryType = () => {
-        return Countries.map((type) => (
-            <MenuItem key={type} value={type}
-                sx={{ color: 'white', '&:hover': { backgroundColor: '#051935' } }}>{type}</MenuItem>
-        ));
-    };
-    const handleCountryChange = (event) => {
-        // prevent default action of submitting the form
-        event.preventDefault();
-        setValue('country', event.target.value);
-    }
-
-    // // State of Origin
-    const getStateOfOriginOptions = () => {
-        return Object.keys(statesAndLGAs).map((stateName) => (
-            <MenuItem key={stateName} value={stateName}
-                sx={{ color: 'white', '&:hover': { backgroundColor: '#051935' } }}>
-                {stateName}
-            </MenuItem>
-        ));
-    };
-    const handleStateOfOriginChange = (event) => {
-        // prevent default action of submitting the form
-        event.preventDefault();
-        setValue('stateOfOrigin', event.target.value)
-        setStateOfOrigin(event.target.value)
-        setValue('lga', '');
-    };
-
-    // LGA
-    const getLGAOptions = () => {
-        if (!stateOfOrigin) {
-            return [];
-        }
-        return statesAndLGAs[stateOfOrigin].map((lgaName) => (
-            <MenuItem key={lgaName} value={lgaName}
-                sx={{ color: 'white', '&:hover': { backgroundColor: '#051935' } }} > {lgaName} </MenuItem>
-        ));
-    };
-    const handleLGAChange = (event) => {
-        // prevent default action of submitting the form
-        event.preventDefault();
-        setValue('lga', event.target.value)
-    };
-
-    // // State of Residence
-    const getStateOfResidence = () => {
-        return Object.keys(statesAndLGAs).map((stateName) => (
-            <MenuItem key={stateName} value={stateName}
-                sx={{ color: 'white', '&:hover': { backgroundColor: '#051935' } }}>
-                {stateName}
-            </MenuItem>
-        ));
-    };
-
-    const handleStateOfResidence = (event) => {
-        event.preventDefault();
-        setCurrStateResidence(event.target.value)
-        setValue('stateOfResidence', event.target.value);
-    }
-
-    // currLGA
-    const getCurrLGAOptions = () => {
-        if (!currStateResidence) {
-            return [];
-        }
-        return statesAndLGAs[currStateResidence].map((lgaName) => (
-            <MenuItem key={lgaName} value={lgaName}
-                      sx={{ color: 'white', '&:hover': { backgroundColor: '#051935' } }} > {lgaName} </MenuItem>
-        ));
-    };
-    const handleCurrLGAChange = (event) => {
-        // prevent default action of submitting the form
-        event.preventDefault();
-        setValue('currlga', event.target.value)
-    };
+    const mutation = useMutation({
+        mutationKey: ["updateHealthWorkerProfile"],
+        mutationFn: AdminUtils.updateHealthWorkerProfile,
+    });
 
     const queryClient = useQueryClient();
-
-    const mutation = useMutation({
-        mutationFn: AdminUtils.updateUserProfile,
-        mutationKey: ['UpdateUserProfile'],
-    })
 
     const updateData = async (objData) => {
         try {
             setUpdating(true);
-            const { success, data } = feProfileUpdateValidator.safeParse(objData);
+            const {success, data} = feHealthWorkerProfileUpdateValidator.safeParse(objData);
             if (!success) {
                 setUpdating(false);
                 toast.error('Please fill all the required fields');
@@ -345,10 +190,10 @@ function UpdateProfile({ userProfile }) {
             mutation.mutate(data, {
                 onSuccess: () => {
                     toast.success('Profile updated successfully');
-                    queryClient.invalidateQueries(['UserData']);
+                    queryClient.invalidateQueries(['HealthWorkerData']);
                     setUpdating(false);
                     router.refresh();
-                    router.push('/user/profile');
+                    router.push('/health-worker/settings/profile');
                 },
                 onError: (error) => {
                     console.error('An unexpected error happened:', error);
@@ -371,6 +216,166 @@ function UpdateProfile({ userProfile }) {
         }
     }, [errors]);
 
+    // next of Kin
+    const getNextOfKinOptions = () => {
+        return nextOfKinRelationship.map((type) => (
+            <MenuItem key={type} value={type}
+                      sx={{color: 'white', '&:hover': {backgroundColor: '#051935'}}}>{type}</MenuItem>
+        ));
+    }
+    const handleNextOfKinChange = (event) => {
+        // prevent default action of submitting the form
+        event.preventDefault();
+        setValue('nextOfKinRelationship', event.target.value);
+    }
+
+    // Gender Type
+    const getGenderType = () => {
+        return sex.map((type) => (
+            <MenuItem key={type} value={type}
+                      sx={{color: 'white', '&:hover': {backgroundColor: '#051935'}}}>{type}</MenuItem>
+        ));
+    };
+    const handleGenderTypeChange = (event) => {
+        event.preventDefault();
+        setValue('gender', event.target.value);
+    }
+
+    // Marital Status
+    const getMaritalStatusType = () => {
+        return maritalStatus.map((type) => (
+            <MenuItem key={type} value={type}
+                      sx={{color: 'white', '&:hover': {backgroundColor: '#051935'}}}>{type}</MenuItem>
+        ));
+    };
+    const handleMaritalStatusType = (event) => {
+        event.preventDefault();
+        setValue('maritalStatus', event.target.value);
+    }
+
+    // Country
+    const getCountryType = () => {
+        return Countries.map((type) => (
+            <MenuItem key={type} value={type}
+                      sx={{color: 'white', '&:hover': {backgroundColor: '#051935'}}}>{type}</MenuItem>
+        ));
+    };
+    const handleCountryChange = (event) => {
+        // prevent default action of submitting the form
+        event.preventDefault();
+        setValue('country', event.target.value);
+    }
+
+    // // State of Origin
+    const getStateOfOriginOptions = () => {
+        return Object.keys(statesAndLGAs).map((stateName) => (
+            <MenuItem key={stateName} value={stateName}
+                      sx={{color: 'white', '&:hover': {backgroundColor: '#051935'}}}>
+                {stateName}
+            </MenuItem>
+        ));
+    };
+    const handleStateOfOriginChange = (event) => {
+        // prevent default action of submitting the form
+        event.preventDefault();
+        setValue('stateOfOrigin', event.target.value)
+        setStateOfOrigin(event.target.value)
+        setValue('lga', '');
+    };
+
+    // LGA
+    const getLGAOptions = () => {
+        if (!stateOfOrigin) {
+            return [];
+        }
+        return statesAndLGAs[stateOfOrigin].map((lgaName) => (
+            <MenuItem key={lgaName} value={lgaName}
+                      sx={{color: 'white', '&:hover': {backgroundColor: '#051935'}}}> {lgaName} </MenuItem>
+        ));
+    };
+    const handleLGAChange = (event) => {
+        // prevent default action of submitting the form
+        event.preventDefault();
+        setValue('lga', event.target.value)
+    };
+
+    // // State of Residence
+    const getStateOfResidence = () => {
+        return Object.keys(statesAndLGAs).map((stateName) => (
+            <MenuItem key={stateName} value={stateName}
+                      sx={{color: 'white', '&:hover': {backgroundColor: '#051935'}}}>
+                {stateName}
+            </MenuItem>
+        ));
+    };
+
+    const handleStateOfResidence = (event) => {
+        event.preventDefault();
+        setCurrStateResidence(event.target.value)
+        setValue('stateOfResidence', event.target.value);
+    }
+
+    // currLGA
+    const getCurrLGAOptions = () => {
+        if (!currStateResidence) {
+            return [];
+        }
+        return statesAndLGAs[currStateResidence].map((lgaName) => (
+            <MenuItem key={lgaName} value={lgaName}
+                      sx={{color: 'white', '&:hover': {backgroundColor: '#051935'}}}> {lgaName} </MenuItem>
+        ));
+    };
+    const handleCurrLGAChange = (event) => {
+        // prevent default action of submitting the form
+        event.preventDefault();
+        setValue('currlga', event.target.value)
+    };
+
+    useEffect(() => {
+        if (pathname.includes('update')) {
+            setActiveTab('/health-worker/settings/profile/update');
+        } else if (pathname.includes('avatar')) {
+            setActiveTab('/health-worker/settings/profile/avatar');
+        } else if (pathname.includes('location')) {
+            setActiveTab('/health-worker/location');
+        } else {
+            setActiveTab('/health-worker/settings/profile');
+        }
+    }, [pathname]);
+
+    useEffect(() => {
+        const dobValue = getValues("dob");
+        if (dobValue) {
+            setDobDate(dayjs(dobValue, "DD/MMM/YYYY"));
+        }
+    }, []);
+
+    useEffect(() => {
+            if (healthWorkerProfile.stateOfOrigin && healthWorkerProfile.lga) {
+                setStateOfOrigin(healthWorkerProfile.stateOfOrigin);
+                setValue('stateOfOrigin', healthWorkerProfile.stateOfOrigin);
+                setValue('lga', healthWorkerProfile.lga);
+            }
+            if (healthWorkerProfile.stateOfResidence && healthWorkerProfile.currlga) {
+                setCurrStateResidence(healthWorkerProfile.stateOfResidence);
+                setValue('stateOfResidence', healthWorkerProfile.stateOfResidence);
+                setValue('currlga', healthWorkerProfile.currlga);
+            }
+        }, [healthWorkerProfile, setValue]
+    );
+
+    const handleExperienceLevelChange = (event) => {
+        // prevent default action of submitting the form
+        event.preventDefault();
+        setValue('experienceLevels', event.target.value);
+    }
+
+
+    const handleSpecializationChange = (event) => {
+        event.preventDefault();
+        setValue('specialization', event.target.value);
+
+    }
 
     return (
         <>
@@ -403,8 +408,8 @@ function UpdateProfile({ userProfile }) {
                         <Tab
                             label="Profile"
                             component={Link}
-                            href="/user/profile"
-                            value="/user/profile"
+                            href="/health-worker/settings/profile"
+                            value="/health-worker/settings/profile"
 
                             sx={{
                                 color: "#FFF",
@@ -417,8 +422,8 @@ function UpdateProfile({ userProfile }) {
                         />
                         <Tab
                             label="Edit-Biodata"
-                            href="/user/profile/update"
-                            value="/user/profile/update"
+                            href="/health-worker/settings/profile/update"
+                            value="/health-worker/settings/profile/update"
                             sx={{
                                 color: "#FFF",
                                 fontWeight: 'bold',
@@ -430,7 +435,7 @@ function UpdateProfile({ userProfile }) {
                         />
                     </Tabs>
                 </Stack>
-                <br />
+                <br/>
                 <Box
                     component="form"
                     onSubmit={handleSubmit(updateData)}
@@ -462,25 +467,25 @@ function UpdateProfile({ userProfile }) {
                                 </Typography>
                             </Card>
                         </Grid>
-                        <Grid size={{ xs: 12, sm: 12, md: 12, lg: 4 }}>
+                        <Grid size={{xs: 12, sm: 12, md: 12, lg: 4}}>
                             <Card sx={{
                                 background: 'linear-gradient(to right, #1d4350, #a43931)',
                                 padding: '16px',
                                 borderRadius: '10px'
                             }}>
                                 <Typography variant="subtitle2"
-                                    sx={{
-                                        color: '#46F0F9',
-                                        fontSize: '14px',
-                                        mb: 1
-                                    }}>
+                                            sx={{
+                                                color: '#46F0F9',
+                                                fontSize: '14px',
+                                                mb: 1
+                                            }}>
                                     FirstName
                                 </Typography>
                                 <FormControl fullWidth>
                                     <Controller
                                         name="firstName"
                                         control={control}
-                                        render={({ field }) => (
+                                        render={({field}) => (
                                             <TextField
                                                 {...field}
                                                 variant="outlined"
@@ -509,25 +514,25 @@ function UpdateProfile({ userProfile }) {
                                 </FormControl>
                             </Card>
                         </Grid>
-                        <Grid size={{ xs: 12, sm: 12, md: 12, lg: 4 }}>
+                        <Grid size={{xs: 12, sm: 12, md: 12, lg: 4}}>
                             <Card sx={{
                                 background: 'linear-gradient(to right, #1d4350, #a43931)',
                                 padding: '16px',
                                 borderRadius: '10px'
                             }}>
                                 <Typography variant="subtitle2"
-                                    sx={{
-                                        color: '#46F0F9',
-                                        fontSize: '14px',
-                                        mb: 1
-                                    }}>
+                                            sx={{
+                                                color: '#46F0F9',
+                                                fontSize: '14px',
+                                                mb: 1
+                                            }}>
                                     MiddleName
                                 </Typography>
                                 <FormControl fullWidth>
                                     <Controller
                                         name="middleName"
                                         control={control}
-                                        render={({ field }) => (
+                                        render={({field}) => (
                                             <TextField
                                                 {...field}
                                                 variant="outlined"
@@ -556,25 +561,25 @@ function UpdateProfile({ userProfile }) {
                                 </FormControl>
                             </Card>
                         </Grid>
-                        <Grid size={{ xs: 12, sm: 12, md: 12, lg: 4 }}>
+                        <Grid size={{xs: 12, sm: 12, md: 12, lg: 4}}>
                             <Card sx={{
                                 background: 'linear-gradient(to right, #1d4350, #a43931)',
                                 padding: '16px',
                                 borderRadius: '10px'
                             }}>
                                 <Typography variant="subtitle2"
-                                    sx={{
-                                        color: '#46F0F9',
-                                        fontSize: '14px',
-                                        mb: 1
-                                    }}>
+                                            sx={{
+                                                color: '#46F0F9',
+                                                fontSize: '14px',
+                                                mb: 1
+                                            }}>
                                     LastName
                                 </Typography>
                                 <FormControl fullWidth>
                                     <Controller
                                         name="lastName"
                                         control={control}
-                                        render={({ field }) => (
+                                        render={({field}) => (
                                             <TextField
                                                 {...field}
                                                 variant="outlined"
@@ -603,25 +608,25 @@ function UpdateProfile({ userProfile }) {
                                 </FormControl>
                             </Card>
                         </Grid>
-                        <Grid size={{ xs: 12, sm: 12, md: 12, lg: 4 }}>
+                        <Grid size={{xs: 12, sm: 12, md: 12, lg: 4}}>
                             <Card sx={{
                                 background: 'linear-gradient(to right, #1d4350, #a43931)',
                                 padding: '16px',
                                 borderRadius: '10px'
                             }}>
                                 <Typography variant="subtitle2"
-                                    sx={{
-                                        color: '#46F0F9',
-                                        fontSize: '14px',
-                                        mb: 1
-                                    }}>
+                                            sx={{
+                                                color: '#46F0F9',
+                                                fontSize: '14px',
+                                                mb: 1
+                                            }}>
                                     Email
                                 </Typography>
                                 <FormControl fullWidth>
                                     <Controller
                                         name="email"
                                         control={control}
-                                        render={({ field }) => (
+                                        render={({field}) => (
                                             <TextField
                                                 {...field}
                                                 variant="outlined"
@@ -651,7 +656,7 @@ function UpdateProfile({ userProfile }) {
                                 </FormControl>
                             </Card>
                         </Grid>
-                        <Grid size={{ xs: 12, sm: 12, md: 12, lg: 4 }}>
+                        <Grid size={{xs: 12, sm: 12, md: 12, lg: 4}}>
                             <Card
                                 sx={{
                                     background: 'linear-gradient(145deg, #1d4350, #a43931)',
@@ -675,7 +680,7 @@ function UpdateProfile({ userProfile }) {
                                     <Controller
                                         name="phoneNumber"
                                         control={control}
-                                        render={({ field }) => (
+                                        render={({field}) => (
                                             <Box sx={phoneInputStyle}>
                                                 <PhoneInput
                                                     {...field}
@@ -706,25 +711,25 @@ function UpdateProfile({ userProfile }) {
                                 </FormControl>
                             </Card>
                         </Grid>
-                        <Grid size={{ xs: 12, sm: 12, md: 12, lg: 4 }}>
+                        <Grid size={{xs: 12, sm: 12, md: 12, lg: 4}}>
                             <Card sx={{
                                 background: 'linear-gradient(to right, #1d4350, #a43931)',
                                 padding: '16px',
                                 borderRadius: '10px'
                             }}>
                                 <Typography variant="subtitle2"
-                                    sx={{
-                                        color: '#46F0F9',
-                                        fontSize: '14px',
-                                        mb: 1
-                                    }}>
+                                            sx={{
+                                                color: '#46F0F9',
+                                                fontSize: '14px',
+                                                mb: 1
+                                            }}>
                                     Gender
                                 </Typography>
                                 <FormControl fullWidth>
                                     <Controller
                                         name="gender"
                                         control={control}
-                                        render={({ field }) => (
+                                        render={({field}) => (
                                             <TextField
                                                 {...field}
                                                 select
@@ -770,7 +775,7 @@ function UpdateProfile({ userProfile }) {
                                                         color: '#fff',
                                                     },
                                                 }}>
-                                                <MenuItem value="" sx={{ color: "#4BF807" }}>
+                                                <MenuItem value="" sx={{color: "#4BF807"}}>
                                                     Select Gender
                                                 </MenuItem>
                                                 {getGenderType()}
@@ -781,25 +786,25 @@ function UpdateProfile({ userProfile }) {
                                 </FormControl>
                             </Card>
                         </Grid>
-                        <Grid size={{ xs: 12, sm: 12, md: 12, lg: 4 }}>
+                        <Grid size={{xs: 12, sm: 12, md: 12, lg: 4}}>
                             <Card sx={{
                                 background: 'linear-gradient(to right, #1d4350, #a43931)',
                                 padding: '16px',
                                 borderRadius: '10px'
                             }}>
                                 <Typography variant="subtitle2"
-                                    sx={{
-                                        color: '#46F0F9',
-                                        fontSize: '14px',
-                                        mb: 1
-                                    }}>
+                                            sx={{
+                                                color: '#46F0F9',
+                                                fontSize: '14px',
+                                                mb: 1
+                                            }}>
                                     Marital Status
                                 </Typography>
                                 <FormControl fullWidth>
                                     <Controller
                                         name="maritalStatus"
                                         control={control}
-                                        render={({ field }) => (
+                                        render={({field}) => (
                                             <TextField
                                                 {...field}
                                                 select
@@ -845,7 +850,7 @@ function UpdateProfile({ userProfile }) {
                                                         color: '#fff',
                                                     },
                                                 }}>
-                                                <MenuItem value="" sx={{ color: "#4BF807" }}>
+                                                <MenuItem value="" sx={{color: "#4BF807"}}>
                                                     Marital Status
                                                 </MenuItem>
                                                 {getMaritalStatusType()}
@@ -856,19 +861,19 @@ function UpdateProfile({ userProfile }) {
                                 </FormControl>
                             </Card>
                         </Grid>
-                      
-                        <Grid size={{ xs: 12, sm: 12, md: 12, lg: 4 }}>
+
+                        <Grid size={{xs: 12, sm: 12, md: 12, lg: 4}}>
                             <Card sx={{
                                 background: 'linear-gradient(to right, #1d4350, #a43931)',
                                 padding: '16px',
                                 borderRadius: '10px'
                             }}>
                                 <Typography variant="subtitle2"
-                                    sx={{
-                                        color: '#46F0F9',
-                                        fontSize: '14px',
-                                        mb: 1
-                                    }}>
+                                            sx={{
+                                                color: '#46F0F9',
+                                                fontSize: '14px',
+                                                mb: 1
+                                            }}>
                                     Country
                                 </Typography>
                                 {/* Relationship*/}
@@ -876,7 +881,7 @@ function UpdateProfile({ userProfile }) {
                                     <Controller
                                         name="country"
                                         control={control}
-                                        render={({ field }) => (
+                                        render={({field}) => (
                                             <TextField
                                                 {...field}
                                                 select
@@ -922,7 +927,7 @@ function UpdateProfile({ userProfile }) {
                                                         color: '#fff',
                                                     },
                                                 }}>
-                                                <MenuItem value="" sx={{ color: "#4BF807" }}>
+                                                <MenuItem value="" sx={{color: "#4BF807"}}>
                                                     Country
                                                 </MenuItem>
                                                 {getCountryType()}
@@ -932,18 +937,18 @@ function UpdateProfile({ userProfile }) {
                                 </FormControl>
                             </Card>
                         </Grid>
-                        <Grid size={{ xs: 12, sm: 12, md: 12, lg: 4 }}>
+                        <Grid size={{xs: 12, sm: 12, md: 12, lg: 4}}>
                             <Card sx={{
                                 background: 'linear-gradient(to right, #1d4350, #a43931)',
                                 padding: '16px',
                                 borderRadius: '10px'
                             }}>
                                 <Typography variant="subtitle2"
-                                    sx={{
-                                        color: '#46F0F9',
-                                        fontSize: '14px',
-                                        mb: 1
-                                    }}>
+                                            sx={{
+                                                color: '#46F0F9',
+                                                fontSize: '14px',
+                                                mb: 1
+                                            }}>
                                     State of Origin
                                 </Typography>
                                 {/* Relationship*/}
@@ -951,7 +956,7 @@ function UpdateProfile({ userProfile }) {
                                     <Controller
                                         name="stateOfOrigin"
                                         control={control}
-                                        render={({ field }) => (
+                                        render={({field}) => (
                                             <TextField
                                                 {...field}
                                                 select
@@ -997,7 +1002,7 @@ function UpdateProfile({ userProfile }) {
                                                         color: '#fff',
                                                     },
                                                 }}>
-                                                <MenuItem value="" sx={{ color: "#4BF807" }}>
+                                                <MenuItem value="" sx={{color: "#4BF807"}}>
                                                     Select State
                                                 </MenuItem>
                                                 {getStateOfOriginOptions()}
@@ -1008,18 +1013,18 @@ function UpdateProfile({ userProfile }) {
                             </Card>
                         </Grid>
                         {/* LGA */}
-                        <Grid size={{ xs: 12, sm: 12, md: 12, lg: 4 }}>
+                        <Grid size={{xs: 12, sm: 12, md: 12, lg: 4}}>
                             <Card sx={{
                                 background: 'linear-gradient(to right, #1d4350, #a43931)',
                                 padding: '16px',
                                 borderRadius: '10px'
                             }}>
                                 <Typography variant="subtitle2"
-                                    sx={{
-                                        color: '#46F0F9',
-                                        fontSize: '14px',
-                                        mb: 1
-                                    }}>
+                                            sx={{
+                                                color: '#46F0F9',
+                                                fontSize: '14px',
+                                                mb: 1
+                                            }}>
                                     LGA
                                 </Typography>
                                 {/* Relationship*/}
@@ -1027,7 +1032,7 @@ function UpdateProfile({ userProfile }) {
                                     <Controller
                                         name="lga"
                                         control={control}
-                                        render={({ field }) => (
+                                        render={({field}) => (
                                             <TextField
                                                 {...field}
                                                 select
@@ -1073,7 +1078,7 @@ function UpdateProfile({ userProfile }) {
                                                         color: '#fff',
                                                     },
                                                 }}>
-                                                <MenuItem value="" sx={{ color: "#4BF807" }}>
+                                                <MenuItem value="" sx={{color: "#4BF807"}}>
                                                     Select LGA
                                                 </MenuItem>
                                                 {getLGAOptions()}
@@ -1102,7 +1107,7 @@ function UpdateProfile({ userProfile }) {
                                         name="dob"
                                         control={control}
                                         error={errors.dob?.message}
-                                        render={({ field }) => (
+                                        render={({field}) => (
                                             <LocalizationProvider dateAdapter={AdapterDayjs}>
                                                 <DatePicker
                                                     {...field}
@@ -1146,8 +1151,8 @@ function UpdateProfile({ userProfile }) {
                                 </Typography>
                             </Card>
                         </Grid>
-                        
-                        <Grid size={{ xs: 12, sm: 12, md: 12, lg: 4 }}>
+
+                        <Grid size={{xs: 12, sm: 12, md: 12, lg: 4}}>
                             <FormControl fullWidth>
                                 <Card sx={{
                                     background: 'linear-gradient(to right, #1d4350, #a43931)',
@@ -1155,18 +1160,18 @@ function UpdateProfile({ userProfile }) {
                                     borderRadius: '10px'
                                 }}>
                                     <Typography variant="subtitle2"
-                                        sx={{
-                                            color: '#46F0F9',
-                                            fontSize: '14px',
-                                            mb: 1
-                                        }}>
+                                                sx={{
+                                                    color: '#46F0F9',
+                                                    fontSize: '14px',
+                                                    mb: 1
+                                                }}>
                                         Next of Kin
                                     </Typography>
 
                                     <Controller
                                         name="nextOfKin"
                                         control={control}
-                                        render={({ field }) => (
+                                        render={({field}) => (
                                             <TextField
                                                 {...field}
                                                 value={field.value || ''}
@@ -1198,18 +1203,18 @@ function UpdateProfile({ userProfile }) {
                                 </Card>
                             </FormControl>
                         </Grid>
-                        <Grid size={{ xs: 12, sm: 12, md: 12, lg: 4 }}>
+                        <Grid size={{xs: 12, sm: 12, md: 12, lg: 4}}>
                             <Card sx={{
                                 background: 'linear-gradient(to right, #1d4350, #a43931)',
                                 padding: '16px',
                                 borderRadius: '10px'
                             }}>
                                 <Typography variant="subtitle2"
-                                    sx={{
-                                        color: '#46F0F9',
-                                        fontSize: '14px',
-                                        mb: 1
-                                    }}>
+                                            sx={{
+                                                color: '#46F0F9',
+                                                fontSize: '14px',
+                                                mb: 1
+                                            }}>
                                     Relationship
                                 </Typography>
                                 {/* Relationship*/}
@@ -1217,7 +1222,7 @@ function UpdateProfile({ userProfile }) {
                                     <Controller
                                         name="nextOfKinRelationship"
                                         control={control}
-                                        render={({ field }) => (
+                                        render={({field}) => (
                                             <TextField
                                                 {...field}
                                                 select
@@ -1263,7 +1268,7 @@ function UpdateProfile({ userProfile }) {
                                                         color: '#fff',
                                                     },
                                                 }}>
-                                                <MenuItem value="" sx={{ color: "#4BF807" }}>
+                                                <MenuItem value="" sx={{color: "#4BF807"}}>
                                                     Select Relationship
                                                 </MenuItem>
                                                 {getNextOfKinOptions()}
@@ -1273,25 +1278,25 @@ function UpdateProfile({ userProfile }) {
                                 </FormControl>
                             </Card>
                         </Grid>
-                        <Grid size={{ xs: 12, sm: 12, md: 12, lg: 4 }}>
+                        <Grid size={{xs: 12, sm: 12, md: 12, lg: 4}}>
                             <Card sx={{
                                 background: 'linear-gradient(to right, #1d4350, #a43931)',
                                 padding: '16px',
                                 borderRadius: '10px'
                             }}>
                                 <Typography variant="subtitle2"
-                                    sx={{
-                                        color: '#46F0F9',
-                                        fontSize: '14px',
-                                        mb: 1
-                                    }}>
+                                            sx={{
+                                                color: '#46F0F9',
+                                                fontSize: '14px',
+                                                mb: 1
+                                            }}>
                                     Contact Number
                                 </Typography>
                                 <FormControl fullWidth>
                                     <Controller
                                         name="nextOfKinPhone"
                                         control={control}
-                                        render={({ field }) => (
+                                        render={({field}) => (
                                             <Box sx={phoneInputStyle}>
                                                 <PhoneInput
                                                     {...field}
@@ -1337,18 +1342,18 @@ function UpdateProfile({ userProfile }) {
                             </Card>
                         </Grid>
                         {/* State of Residence */}
-                        <Grid size={{ xs: 12, sm: 12, md: 12, lg: 4 }}>
+                        <Grid size={{xs: 12, sm: 12, md: 12, lg: 4}}>
                             <Card sx={{
                                 background: 'linear-gradient(to right, #1d4350, #a43931)',
                                 padding: '16px',
                                 borderRadius: '10px'
                             }}>
                                 <Typography variant="subtitle2"
-                                    sx={{
-                                        color: '#46F0F9',
-                                        fontSize: '14px',
-                                        mb: 1
-                                    }}>
+                                            sx={{
+                                                color: '#46F0F9',
+                                                fontSize: '14px',
+                                                mb: 1
+                                            }}>
                                     State of Residence
                                 </Typography>
                                 {/* Relationship*/}
@@ -1356,7 +1361,7 @@ function UpdateProfile({ userProfile }) {
                                     <Controller
                                         name="stateOfResidence"
                                         control={control}
-                                        render={({ field }) => (
+                                        render={({field}) => (
                                             <TextField
                                                 {...field}
                                                 select
@@ -1402,7 +1407,7 @@ function UpdateProfile({ userProfile }) {
                                                         color: '#fff',
                                                     },
                                                 }}>
-                                                <MenuItem value="" sx={{ color: "#4BF807" }}>
+                                                <MenuItem value="" sx={{color: "#4BF807"}}>
                                                     Select State
                                                 </MenuItem>
                                                 {getStateOfResidence()}
@@ -1413,18 +1418,18 @@ function UpdateProfile({ userProfile }) {
                             </Card>
                         </Grid>
                         {/* LGA */}
-                        <Grid size={{ xs: 12, sm: 12, md: 12, lg: 4 }}>
+                        <Grid size={{xs: 12, sm: 12, md: 12, lg: 4}}>
                             <Card sx={{
                                 background: 'linear-gradient(to right, #1d4350, #a43931)',
                                 padding: '16px',
                                 borderRadius: '10px'
                             }}>
                                 <Typography variant="subtitle2"
-                                    sx={{
-                                        color: '#46F0F9',
-                                        fontSize: '14px',
-                                        mb: 1
-                                    }}>
+                                            sx={{
+                                                color: '#46F0F9',
+                                                fontSize: '14px',
+                                                mb: 1
+                                            }}>
                                     LGA
                                 </Typography>
 
@@ -1433,7 +1438,7 @@ function UpdateProfile({ userProfile }) {
                                     <Controller
                                         name="currlga"
                                         control={control}
-                                        render={({ field }) => (
+                                        render={({field}) => (
                                             <TextField
                                                 {...field}
                                                 select
@@ -1480,7 +1485,7 @@ function UpdateProfile({ userProfile }) {
                                                     },
                                                 }}>
 
-                                                <MenuItem value="" sx={{ color: "#4BF807" }}>
+                                                <MenuItem value="" sx={{color: "#4BF807"}}>
                                                     Select LGA
                                                 </MenuItem>
                                                 {getCurrLGAOptions()}
@@ -1490,7 +1495,7 @@ function UpdateProfile({ userProfile }) {
                                 </FormControl>
                             </Card>
                         </Grid>
-                        <Grid size={{ xs: 12, sm: 12, md: 12, lg: 4 }}>
+                        <Grid size={{xs: 12, sm: 12, md: 12, lg: 4}}>
                             <Card sx={{
                                 background: 'linear-gradient(to right, #1d4350, #a43931)',
                                 padding: '16px',
@@ -1508,7 +1513,7 @@ function UpdateProfile({ userProfile }) {
                                     <Controller
                                         name="address"
                                         control={control}
-                                        render={({ field }) => (
+                                        render={({field}) => (
                                             <TextField
                                                 {...field}
                                                 variant="outlined"
@@ -1537,20 +1542,231 @@ function UpdateProfile({ userProfile }) {
                                 </FormControl>
                             </Card>
                         </Grid>
+                        <Grid size={12}>
+                            <Card sx={{
+                                background: 'linear-gradient(to right, #000046, #1cb5e0)',
+                                padding: '16px',
+                                borderRadius: '10px'
+                            }}>
+                                <Typography variant="body1" sx={{
+                                    color: '#FFF',
+                                    fontWeight: 'bold',
+                                    textAlign: 'center'
+                                }}>
+                                    Professional Info
+                                </Typography>
+                            </Card>
+                        </Grid>
+                        {/* Health Worker Specific Fields */}
+                        <Grid size={{xs: 12, sm: 12, md: 12, lg: 4}}>
+                            <Controller
+                                name="specialization"
+                                control={control}
+                                render={({field}) => (
+                                    <FormControl fullWidth>
+                                        <TextField
+                                            {...field}
+                                            select
+                                            label="Specialization"
+                                            error={!!errors.specialization}
+                                            helperText={errors.specialization?.message}
+                                            value={field.value || ''}
+                                            onChange={(e) => {
+                                                field.onChange(e);
+                                                handleSpecializationChange(e);
+                                            }}
+                                            required
+                                            sx={{
+                                                '& .MuiSelect-icon': {
+                                                    color: '#fff',
+                                                },
+                                                '& .MuiSelect-icon:hover': {
+                                                    color: '#fff',
+                                                },
+                                            }}
+                                            slotProps={{
+                                                input: {
+                                                    sx: txProps,
+                                                },
+                                                inputLabel: {
+                                                    sx: {
+                                                        color: "#FFF",
+                                                        "&.Mui-focused": {
+                                                            color: "white"
+                                                        },
+                                                    }
+                                                },
+                                                select: {
+                                                    MenuProps: {
+                                                        PaperProps: {
+                                                            sx: {
+                                                                backgroundColor: '#134357',
+                                                                color: 'white',
+                                                                maxHeight: 450,
+                                                                overflow: 'auto',
+                                                            },
+                                                        },
+                                                    },
+
+                                                }
+                                            }}
+                                        >
+                                            {specializations.map((option) => (
+                                                <MenuItem key={option} value={option}>
+                                                    {option}
+                                                </MenuItem>
+                                            ))}
+                                        </TextField>
+                                    </FormControl>
+                                )}
+                            />
+                        </Grid>
+
+                        <Grid size={{xs: 12, sm: 12, md: 12, lg: 4}}>
+                            <Controller
+                                name="licenseNumber"
+                                control={control}
+                                render={({field}) => (
+                                    <TextField
+                                        {...field}
+                                        fullWidth
+                                        label="License Number"
+                                        error={!!errors.licenseNumber}
+                                        helperText={errors.licenseNumber?.message}
+                                        value={field.value || ''}
+                                        slotProps={{
+                                            input: {
+                                                sx: txProps,
+                                            },
+                                            inputLabel: {
+                                                sx: {
+                                                    color: "#FFF",
+                                                    "&.Mui-focused": {
+                                                        color: "white"
+                                                    },
+                                                }
+                                            }
+                                        }}
+                                        sx={{
+                                            color: "#46F0F9",
+                                        }}
+                                    />
+                                )}
+                            />
+                        </Grid>
+
+                        <Grid size={{xs: 12, sm: 12, md: 12, lg: 4}}>
+                            <Controller
+                                name="experienceLevel"
+                                control={control}
+                                render={({field}) => (
+                                    <FormControl fullWidth>
+                                        <TextField
+                                            {...field}
+                                            select
+                                            label="Experience Level"
+                                            error={!!errors.yearsOfExperience}
+                                            helperText={errors.yearsOfExperience?.message}
+                                            value={field.value || ''}
+                                            required
+                                            onChange={(e) => {
+                                                field.onChange(e);
+                                                handleExperienceLevelChange(e);
+                                            }}
+                                            sx={{
+                                                '& .MuiSelect-icon': {
+                                                    color: '#fff',
+                                                },
+                                                '& .MuiSelect-icon:hover': {
+                                                    color: '#fff',
+                                                },
+                                            }}
+                                            slotProps={{
+                                                input: {
+                                                    sx: txProps,
+                                                },
+                                                inputLabel: {
+                                                    sx: {
+                                                        color: "#FFF",
+                                                        "&.Mui-focused": {
+                                                            color: "white"
+                                                        },
+                                                    }
+                                                },
+                                                select: {
+                                                    MenuProps: {
+                                                        PaperProps: {
+                                                            sx: {
+                                                                backgroundColor: '#134357',
+                                                                color: 'white',
+                                                                maxHeight: 450,
+                                                                overflow: 'auto',
+                                                            },
+                                                        },
+                                                    },
+
+                                                }
+                                            }}
+                                        >
+                                            {experienceLevels.map((option) => (
+                                                <MenuItem key={option} value={option}>
+                                                    {option}
+                                                </MenuItem>
+                                            ))}
+                                        </TextField>
+                                    </FormControl>
+                                )}
+                            />
+                        </Grid>
+
+                        <Grid size={{xs: 12, sm: 12, md: 12, lg: 4}}>
+                            <Controller
+                                name="hospitalAffiliation"
+                                control={control}
+                                render={({field}) => (
+                                    <TextField
+                                        {...field}
+                                        fullWidth
+                                        label="Hospital Affiliation"
+                                        error={!!errors.hospitalAffiliation}
+                                        helperText={errors.hospitalAffiliation?.message}
+                                        value={field.value || ''}
+                                        slotProps={{
+                                            input: {
+                                                sx: txProps,
+                                            },
+                                            inputLabel: {
+                                                sx: {
+                                                    color: "#FFF",
+                                                    "&.Mui-focused": {
+                                                        color: "white"
+                                                    },
+                                                }
+                                            }
+                                        }}
+                                        sx={{
+                                            color: "#46F0F9",
+                                        }}
+                                    />
+                                )}
+                            />
+                        </Grid>
                     </Grid>
-                    <br />
+                    <br/>
                     {/*Submitting button */}
-                    <Stack direction='row' gap={3} sx={{ marginBottom: '75px', justifyContent: 'flex-start' }}>
-                        <Link href="/user/settings/profile">
-                            <Button variant="contained" color='success' aria-label="Go back to user profile"> Back </Button>
+                    <Stack direction='row' gap={3} sx={{marginBottom: '75px', justifyContent: 'flex-start'}}>
+                        <Link href="/health-worker/settings/profile">
+                            <Button variant="contained" color='success'
+                                    aria-label="Go back to user profile"> Back </Button>
                         </Link>
-                        <Button variant="contained" color='info' onClick={() => reset()} aria-label="Clear form"> Clear </Button>
+                        <Button variant="contained" color='info' onClick={() => reset()}
+                                aria-label="Clear form"> Clear </Button>
                         <Button
                             variant="contained"
                             color="error"
                             type="submit"
                             aria-label="Submit form"
-                            endIcon={updating && <CircularProgress size={20} color="inherit" />}
+                            endIcon={updating && <CircularProgress size={20} color="inherit"/>}
                             onClick={(e) => updating && e.preventDefault()} // Prevent default click if updating
                             sx={{
                                 ...(updating && {

@@ -1,20 +1,19 @@
 "use client";
-import TopNav from "@/components/UserComponents/TopNav/TopNav";
+import TopNav from "@/components/HealthWorkerComponents/TopNav/TopNav";
 import Box from "@mui/material/Box";
 import {useTheme} from "@mui/material/styles";
 import {useCallback, useEffect, useState} from "react";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import SideNav from "@/components/UserComponents/SideNav/SideNav";
+import SideNav from "@/components/HealthWorkerComponents/SideNav/SideNav";
 import {useRouter} from "next/navigation";
 import {useQuery, useQueryClient} from "@tanstack/react-query";
 import AdminUtils from "@/utils/AdminUtils";
 import LazyLoading from "@/components/LazyLoading/LazyLoading";
-import {ActivityLoggerService} from "@/utils/ActivityLoggerService";
-import {doc, getDoc, setDoc, updateDoc, serverTimestamp} from "firebase/firestore";
+import {doc, getDoc, setDoc, serverTimestamp, updateDoc} from "firebase/firestore";
 import {db} from "@/server/db/fireStore";
-import {toast} from "sonner";
+import {toast} from 'sonner';
 
-function UserLayout({children}) {
+function HealthWorkerLayout({children}) {
     const router = useRouter();
     const theme = useTheme();
 
@@ -22,109 +21,75 @@ function UserLayout({children}) {
     const [navState, setNavState] = useState("full"); // "full", "icon", "hidden"
 
     const queryClient = useQueryClient();
-    const {userProfile} = queryClient.getQueryData(["UserData"]) || {};
+    const {healthWorkerProfile} = queryClient.getQueryData(["HealthWorkerData"]) || {};
 
     const {data, isLoading, isError} = useQuery({
-        queryKey: ["UserData"],
-        queryFn: AdminUtils.userProfile,
+        queryKey: ["HealthWorkerData"],
+        queryFn: AdminUtils.healthWorkerProfile,
         staleTime: Infinity,
-        enabled: !userProfile,
+        enabled: !healthWorkerProfile,
     });
 
-    const effectiveUserData = userProfile || data;
-
-    const encryptAndStoreData = useCallback(async () => {
-        try {
-            if (effectiveUserData) {
-                await AdminUtils.encryptAndStoreProfile(effectiveUserData);
-            }
-        } catch (error) {
-            console.error("Encryption Error:", error);
-        }
-    }, [effectiveUserData]);
-
-    // Check for daily activity logging
-    useEffect(() => {
-        const checkDailyActivity = async () => {
-            if (effectiveUserData?._id) {
-                await ActivityLoggerService.checkAndSendDailyLoggerNotification(effectiveUserData._id);
-            }
-        };
-        checkDailyActivity();
-    }, [effectiveUserData?._id]);
+    const effectiveHealthWorkerData = healthWorkerProfile || data;
 
     useEffect(() => {
-        encryptAndStoreData();
-    }, [encryptAndStoreData]);
-
-    useEffect(() => {
-        if (!effectiveUserData) {
+        if (!effectiveHealthWorkerData) {
             return;
         }
 
-        const storeUserData = async () => {
-            if (!effectiveUserData || !effectiveUserData._id) {
-                console.error('Invalid effective user data:', effectiveUserData);
+        const storeHealthWorkerData = async () => {
+            if (!effectiveHealthWorkerData || !effectiveHealthWorkerData._id) {
+                console.error('Invalid effective health worker data:', effectiveHealthWorkerData);
                 return;
             }
 
-            const userRef = doc(db, "users", effectiveUserData._id);
+            const healthWorkerRef = doc(db, "healthWorkers", effectiveHealthWorkerData._id);
             try {
-                const userDoc = await getDoc(userRef);
+                const healthWorkerDoc = await getDoc(healthWorkerRef);
 
-                if (!userDoc.exists()) {
-                    console.log('Creating new user document...');
-                    await setDoc(userRef, {
-                        userId: effectiveUserData._id,
-                        email: effectiveUserData.email,
+                if (!healthWorkerDoc.exists()) {
+                    console.log('Creating new health worker document...');
+                    await setDoc(healthWorkerRef, {
+                        healthWorkerId: effectiveHealthWorkerData._id,
+                        email: effectiveHealthWorkerData.email,
                         status: 'online',
-                        role: effectiveUserData.role,
-                        notificationPreferences: {
-                            news: true,
-                            feeds: true,
-                            tipsGuides: true,
-                            categories: [], // User can customize later
-                            email: true,
-                            push: true
-                        },
+                        role: effectiveHealthWorkerData.role,
                         lastActive: serverTimestamp(),
                         updatedAt: serverTimestamp(),
                     }, {merge: true});
                 } else {
-                    console.log('Updating existing user document...');
-                    await setDoc(userRef, {
+                    console.log('Updating existing health worker document...');
+                    await setDoc(healthWorkerRef, {
                         status: 'online',
-                        firstName: effectiveUserData.firstName || '',
-                        lastName: effectiveUserData.lastName || '',
                         lastActive: serverTimestamp(),
                         updatedAt: serverTimestamp(),
                     }, {merge: true});
                 }
             } catch (error) {
-                console.error('Error storing user data:', error);
-                toast.error('Failed to update status');
+                console.error('Error storing health worker data:', error);
             }
         };
-        storeUserData();
-    }, [effectiveUserData]);
+
+        storeHealthWorkerData();
+    }, [effectiveHealthWorkerData]);
 
     useEffect(() => {
-        if (!effectiveUserData?.email || !effectiveUserData?._id) {
+        if (!effectiveHealthWorkerData?.email || !effectiveHealthWorkerData?._id) {
           return;
         }
 
-        const userRef = doc(db, "users", effectiveUserData._id);
+        const healthWorkerRef = doc(db, "healthWorkers", effectiveHealthWorkerData._id);
 
         const updateOnlineStatus = async () => {
             try {
-                const userRef = doc(db, "users", effectiveUserData._id);
-                const userDoc = await getDoc(userRef);
+                const healthWorkerRef = doc(db, "healthWorkers", effectiveHealthWorkerData._id);
+                const healthWorkerDoc = await getDoc(healthWorkerRef);
 
-                if (!userDoc.exists()) {
-                    console.warn('No document found for user ID:', effectiveUserData._id);
-                    await setDoc(userRef, {
-                        userId: effectiveUserData._id,
-                        email: effectiveUserData.email,
+                if (!healthWorkerDoc.exists()) {
+                    console.warn('No document found for health worker ID:', effectiveHealthWorkerData._id);
+                    await setDoc(healthWorkerRef, {
+                        healthWorkerId: effectiveHealthWorkerData._id,
+                        email: effectiveHealthWorkerData.email,
                         status: 'online',
                         createdAt: serverTimestamp(),
                         lastActive: serverTimestamp(),
@@ -133,11 +98,11 @@ function UserLayout({children}) {
                     console.log('Document created during update process.');
                 }
 
-                await updateDoc(userRef, {
+                await updateDoc(healthWorkerRef, {
                     status: 'online',
-                    name: effectiveUserData.firstName || '',
-                    firstName: effectiveUserData.firstName || '',
-                    lastName: effectiveUserData.lastName || '',
+                    name: effectiveHealthWorkerData.firstName || '' ,
+                    firstName: effectiveHealthWorkerData.firstName || '',
+                    lastName: effectiveHealthWorkerData.lastName || '',
                     lastActive: serverTimestamp(),
                     updatedAt: serverTimestamp(),
                 });
@@ -150,7 +115,7 @@ function UserLayout({children}) {
 
         const setupOfflineStatus = async () => {
             try {
-                await updateDoc(userRef, {
+                await updateDoc(healthWorkerRef, {
                     status: 'offline',
                     lastActive: serverTimestamp(),
                     updatedAt: serverTimestamp()
@@ -175,7 +140,7 @@ function UserLayout({children}) {
             window.removeEventListener('beforeunload', handleBeforeUnload);
             setupOfflineStatus();
         };
-    }, [effectiveUserData?.email, effectiveUserData?._id]);
+    }, [effectiveHealthWorkerData?.email, effectiveHealthWorkerData?._id]);
 
     if (isLoading) {
         return <LazyLoading/>;
@@ -183,9 +148,14 @@ function UserLayout({children}) {
 
     if (isError || !data) {
         router.push("/error/e401");
+        return null;
     }
 
     const sideNavWidth = navState === "full" ? 250 : navState === "icon" ? 80 : 0;
+    console.log({
+        from: 'Layout',
+        healthWorkerProfile: effectiveHealthWorkerData,
+    })
 
     return (
         <Box
@@ -193,7 +163,7 @@ function UserLayout({children}) {
                 display: "flex",
                 height: "100vh",
                 width: "100vw",
-                overflow: "hidden", // Prevent horizontal scrolling
+                overflow: "hidden",
                 position: "relative",
             }}
         >
@@ -239,7 +209,7 @@ function UserLayout({children}) {
                             )
                         }
                         navState={navState}
-                        userProfile={effectiveUserData}
+                        healthWorkerProfile={effectiveHealthWorkerData}
                     />
                 </Box>
 
@@ -262,4 +232,4 @@ function UserLayout({children}) {
     );
 }
 
-export default UserLayout;
+export default HealthWorkerLayout;

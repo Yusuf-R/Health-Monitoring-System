@@ -32,18 +32,18 @@ const features = [
         btnColor: '#4CAF50',
     },
     {
-        title: "View Insights",
-        description: "Gain insights into your health with real-time data and analytics.",
-        icon: <InsightsIcon />,
-        route: '/user/personalized/logger/insights',
-        btnColor: '#007FFF',
-    },
-    {
         title: "Activities",
         description: "Monitor your fitness and get personalized workout recommendations.",
         icon: <ActivitiesIcon />,
         route: '/user/personalized/logger/activity-tracker',
         btnColor: '#00BCD4',
+    },
+    {
+        title: "View Insights",
+        description: "Gain insights into your health with real-time data and analytics.",
+        icon: <InsightsIcon />,
+        route: '/user/personalized/logger/insights',
+        btnColor: '#007FFF',
     },
     {
         title: "Connect with Doctors",

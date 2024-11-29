@@ -170,32 +170,6 @@ export const sex = [
     'Male',
 ];
 
-export const vType = [
-    'Car',
-    'Keke-Napep',
-    'Bus',
-    'Others',
-];
-
-export const vColor = [
-    'Black',
-    'White',
-    'Red',
-    'Blue',
-    'Green',
-    'Yellow',
-    'Silver',
-    'Grey',
-    'Others',
-];
-
-export const vCondition = [
-    'New',
-    'Good',
-    'Fair',
-    'Needs Maintenance',
-];
-
 export const nextOfKinRelationship = [
     'Father',
     'Mother',
@@ -1092,12 +1066,6 @@ export const statesAndLGAs = {
     ]
 };
 
-export const religionIdentity = [
-    'Christianity',
-    'Islam',
-    'Others',
-];
-
 export const Countries = [
     'Nigeria',
 ];
@@ -1110,4 +1078,43 @@ export const tabProps = {
         color: "#46F0F9",
     },
 };
+
+export const religionIdentity = [
+    "Christianity",
+    "Islam",
+    "Hinduism",
+    "Buddhism",
+    "Judaism",
+    "Sikhism",
+    "Agnostic",
+    "Atheist",
+    "Other", // Allow text input if selected
+];
+
+export const specializations = [
+    "General Medicine",
+    "Pediatrics",
+    "Obstetrics and Gynecology",
+    "Cardiology",
+    "Neurology",
+    "Orthopedics",
+    "Psychiatry",
+    "Dermatology",
+    "Dentistry",
+    "Ophthalmology",
+    "ENT (Ear, Nose, and Throat)",
+    "Physiotherapy",
+    "Nutrition and Dietetics",
+    "Public Health",
+    "Other", // Allow text input if selected
+];
+
+export const experienceLevels = [
+    "Intern",
+    "Junior Health Worker (1–2 years)",
+    "Mid-Level Health Worker (3–5 years)",
+    "Senior Health Worker (6–10 years)",
+    "Expert/Consultant (10+ years)",
+];
+
 

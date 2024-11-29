@@ -68,6 +68,9 @@ class UserController {
             const isPasswordValid = await AuthController.comparePassword(password, user.password);
             if (!isPasswordValid) throw new Error("Invalid credentials");
 
+            // set the user status to online
+            user.status = "online";
+            await user.save();
             return user; // Return the user
         } catch (error) {
             console.error("Error in Login:", error.message);
@@ -87,6 +90,9 @@ class UserController {
             if (!userProfile) {
                 throw new Error("User not found");
             }
+            // set the user profile status to offline
+            userProfile.status = "offline";
+            await userProfile.save();
             // Close the database connection
             await dbClient.close();
             return userProfile;
@@ -102,10 +108,17 @@ class UserController {
             await dbClient.connect();
 
             // Check if userId is a valid ObjectId
-            if (!ObjectId.isValid(userId)) throw new Error("Invalid user ID format");
+            if (!ObjectId.isValid(userId)) {
+              throw new Error("Invalid user ID format");
+            }
 
             const userProfile = await User.findById(userId);
-            if (!userProfile) throw new Error("User profile not found");
+            if (!userProfile) {
+              throw new Error("User profile not found");
+            }
+            // set the user profile status to online
+            userProfile.status = "online";
+            await userProfile.save();
             return userProfile;
         } catch (error) {
             console.error("Error in Profile:", error.message);

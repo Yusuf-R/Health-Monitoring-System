@@ -1,62 +1,60 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
+    Alert,
     alpha,
     Box,
     Button,
-    Card,
-    CardContent,
-    Container,
-    Grid,
-    Paper,
-    Stack,
-    Tabs,
-    Tab,
-    TextField,
-    Typography,
+    Checkbox,
     Chip,
     CircularProgress,
-    useTheme,
-    Slider,
-    FormControlLabel,
-    Checkbox,
+    Container,
     Fade,
-    Alert,
+    FormControlLabel,
+    Grid,
+    Paper,
+    Slider,
+    Stack,
+    Tab,
+    Tabs,
+    TextField,
+    Typography,
+    useTheme,
 } from '@mui/material';
 import {
+    ArrowForward as ArrowForwardIcon,
+    DirectionsRun as ActivitiesIcon,
     Healing as SymptomIcon,
     Insights as InsightsIcon,
     LocalHospital as HospitalIcon,
-    DirectionsRun as ActivitiesIcon,
-    ArrowForward as ArrowForwardIcon,
 } from '@mui/icons-material';
-import { db } from '@/server/db/fireStore';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
+import {db} from '@/server/db/fireStore';
+import {addDoc, collection, serverTimestamp} from 'firebase/firestore';
+import {useRouter} from 'next/navigation';
+import {toast} from 'sonner';
 
 const features = [
     {
         title: "Log Your Symptoms",
-        icon: <SymptomIcon />,
+        icon: <SymptomIcon/>,
         route: '/user/personalized/logger/symptom-logger',
         btnColor: '#4CAF50',
     },
     {
         title: "View Insights",
-        icon: <InsightsIcon />,
+        icon: <InsightsIcon/>,
         route: '/user/personalized/logger/insights',
         btnColor: '#007FFF',
     },
     {
         title: "Activities",
-        icon: <ActivitiesIcon />,
+        icon: <ActivitiesIcon/>,
         route: '/user/personalized/logger/activity-tracker',
         btnColor: '#00BCD4',
     },
     {
         title: "Connect with Doctors",
-        icon: <HospitalIcon />,
+        icon: <HospitalIcon/>,
         route: '/user/settings/chats',
         btnColor: '#9C27B0',
     },
@@ -89,7 +87,7 @@ const symptomOptions = [
     "Chest Pain",
 ];
 
-function SymptomLogger({ userProfile }) {
+function SymptomLogger({userProfile}) {
     const [selectedTab, setSelectedTab] = useState('/user/personalized/logger/symptom-logger');
     const router = useRouter();
     const [symptomDetails, setSymptomDetails] = useState('');
@@ -229,7 +227,7 @@ Continue monitoring your symptoms and log any changes. If your condition worsens
 
     return (
         <>
-            <Container maxWidth="xl" sx={{ py: 0.5, m: 0 }}>
+            <Container maxWidth="xl" sx={{py: 0.5, m: 0}}>
                 <Stack
                     elevation={3}
                     direction="row"
@@ -266,7 +264,7 @@ Continue monitoring your symptoms and log any changes. If your condition worsens
                         <Tab
                             label="ALL"
                             value="All"
-                            icon={<ArrowForwardIcon sx={{ color: '#46F0F9' }} />}
+                            icon={<ArrowForwardIcon sx={{color: '#46F0F9'}}/>}
                             iconPosition="start"
                         />
                         {features.map((feature) => (
@@ -275,7 +273,7 @@ Continue monitoring your symptoms and log any changes. If your condition worsens
                                 label={feature.title.toUpperCase()}
                                 value={feature.route}
                                 icon={React.cloneElement(feature.icon, {
-                                    sx: { color: feature.btnColor },
+                                    sx: {color: feature.btnColor},
                                 })}
                                 iconPosition="start"
                                 sx={{
@@ -287,7 +285,7 @@ Continue monitoring your symptoms and log any changes. If your condition worsens
                     </Tabs>
                 </Stack>
             </Container>
-            <Container maxWidth="xl" sx={{ py: 0.5, m: 0 }}>
+            <Container maxWidth="xl" sx={{py: 0.5, m: 0}}>
                 <Paper
                     elevation={3}
                     sx={{
@@ -313,8 +311,10 @@ Continue monitoring your symptoms and log any changes. If your condition worsens
                         >
                             Symptom Logger 📋
                         </Typography>
-                        <Typography variant="h6" sx={{ color: alpha('#fff', 0.9), textAlign: 'center', maxWidth: '800px' }}>
-                            Track your health journey with precision and care. Log your symptoms, monitor patterns, and stay connected with healthcare providers.
+                        <Typography variant="h6"
+                                    sx={{color: alpha('#fff', 0.9), textAlign: 'center', maxWidth: '800px'}}>
+                            Track your health journey with precision and care. Log your symptoms, monitor patterns, and
+                            stay connected with healthcare providers.
                         </Typography>
                     </Stack>
                 </Paper>
@@ -327,10 +327,10 @@ Continue monitoring your symptoms and log any changes. If your condition worsens
                         bgcolor: theme.palette.mode === 'dark' ? alpha('#000', 0.6) : alpha('#fff', 0.9),
                     }}
                 >
-                    <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                    <Typography variant="h6" sx={{mb: 2, fontWeight: 600}}>
                         Select Symptom Category
                     </Typography>
-                    <Stack direction="row" spacing={1} sx={{ mb: 4, flexWrap: 'wrap', gap: 1 }}>
+                    <Stack direction="row" spacing={1} sx={{mb: 4, flexWrap: 'wrap', gap: 1}}>
                         {categories.map((category) => (
                             <Chip
                                 key={category}
@@ -356,10 +356,10 @@ Continue monitoring your symptoms and log any changes. If your condition worsens
                         placeholder="Please provide detailed information about your symptoms..."
                         value={symptomDetails}
                         onChange={(e) => setSymptomDetails(e.target.value)}
-                        sx={{ mb: 3 }}
+                        sx={{mb: 3}}
                     />
 
-                    <Box sx={{ mb: 4 }}>
+                    <Box sx={{mb: 4}}>
                         <Typography gutterBottom>Symptom Intensity</Typography>
                         <Slider
                             value={symptomIntensity}
@@ -368,9 +368,9 @@ Continue monitoring your symptoms and log any changes. If your condition worsens
                             min={1}
                             max={10}
                             marks={[
-                                { value: 1, label: 'Mild' },
-                                { value: 5, label: 'Moderate' },
-                                { value: 10, label: 'Severe' },
+                                {value: 1, label: 'Mild'},
+                                {value: 5, label: 'Moderate'},
+                                {value: 10, label: 'Severe'},
                             ]}
                             sx={{
                                 color: theme.palette.primary.main,
@@ -381,10 +381,10 @@ Continue monitoring your symptoms and log any changes. If your condition worsens
                         />
                     </Box>
 
-                    <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 500 }}>
+                    <Typography variant="subtitle1" sx={{mb: 1, fontWeight: 500}}>
                         Accompanying Symptoms
                     </Typography>
-                    <Stack direction="row" spacing={1} sx={{ mb: 4, flexWrap: 'wrap', gap: 1 }}>
+                    <Stack direction="row" spacing={1} sx={{mb: 4, flexWrap: 'wrap', gap: 1}}>
                         {symptomOptions.map((symptom) => (
                             <Chip
                                 key={symptom}
@@ -404,7 +404,7 @@ Continue monitoring your symptoms and log any changes. If your condition worsens
                         ))}
                     </Stack>
 
-                    <Grid container spacing={3} sx={{ mb: 3 }}>
+                    <Grid container spacing={3} sx={{mb: 3}}>
                         <Grid item xs={12} md={6}>
                             <TextField
                                 fullWidth
@@ -433,7 +433,7 @@ Continue monitoring your symptoms and log any changes. If your condition worsens
                         placeholder="Any other relevant information..."
                         value={additionalNotes}
                         onChange={(e) => setAdditionalNotes(e.target.value)}
-                        sx={{ mb: 3 }}
+                        sx={{mb: 3}}
                     />
 
                     <FormControlLabel
@@ -450,22 +450,22 @@ Continue monitoring your symptoms and log any changes. If your condition worsens
                             />
                         }
                         label={
-                            <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                            <Typography variant="body1" sx={{fontWeight: 500}}>
                                 Request contact from a healthcare provider
                             </Typography>
                         }
-                        sx={{ mb: 3 }}
+                        sx={{mb: 3}}
                     />
 
                     <Fade in={!!successMessage || !!errorMessage}>
-                        <Box sx={{ mb: 3 }}>
+                        <Box sx={{mb: 3}}>
                             {successMessage && (
-                                <Alert severity="success" sx={{ mb: 2 }}>
+                                <Alert severity="success" sx={{mb: 2}}>
                                     {successMessage}
                                 </Alert>
                             )}
                             {errorMessage && (
-                                <Alert severity="error" sx={{ mb: 2 }}>
+                                <Alert severity="error" sx={{mb: 2}}>
                                     {errorMessage}
                                 </Alert>
                             )}
@@ -487,7 +487,7 @@ Continue monitoring your symptoms and log any changes. If your condition worsens
                         }}
                     >
                         {loading ? (
-                            <CircularProgress size={24} color="inherit" />
+                            <CircularProgress size={24} color="inherit"/>
                         ) : (
                             'Log Symptoms'
                         )}
