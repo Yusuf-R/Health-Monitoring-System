@@ -329,7 +329,6 @@ class AdminUtils {
 
     // health worker section
 
-
     static async healthWorkerRegistration(obj) {
         try {
             const response = await axiosPublic({
@@ -400,6 +399,24 @@ class AdminUtils {
         }
     }
 
+    static async updateHealthWorkerProfile(obj) {
+        try {
+            const response = await axiosPrivate({
+                method: "PATCH",
+                url: '/health-worker/profile/update',
+                data: obj,
+            });
+            if (response.status === 201) {
+                return response.data;
+            } else {
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.log({error});
+            throw new Error(error);
+        }
+    }
+
     static async healthWorkerAvatar(formData) {
         try {
             const response = await axiosPrivate({
@@ -419,11 +436,65 @@ class AdminUtils {
                 return response.data;
             } else {
                 console.error('Upload response:', response);
-                return new Error(response.data?.error || 'Upload failed');
+                throw new Error(response.data?.error || 'Upload failed');
             }
         } catch (error) {
             console.error('Upload error:', error);
             throw error;
+        }
+    }
+
+    static async setHealthWorkerLocation(obj) {
+        try {
+            const response = await axiosPrivate({
+                method: "PATCH",
+                url: '/health-worker/profile/location/set',
+                data: obj,
+            });
+            if (response.status === 201) {
+                return response.data;
+            } else {
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.log({error});
+            throw new Error(error);
+        }
+    }
+
+    static async deleteHealthWorkerLocation(obj) {
+        try {
+            const response = await axiosPrivate({
+                method: "DELETE",
+                url: '/health-worker/profile/location/delete',
+                data: obj,
+            });
+            if (response.status === 200) {
+                return response.data;
+            } else {
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.log({error});
+            throw new Error(error);
+        }
+    }
+
+    static async editHealthWorkerLocation(obj) {
+        try {
+            const response = await axiosPrivate({
+                method: "PATCH",
+                url: '/health-worker/profile/location/edit',
+                data: obj,
+            });
+            if (response.status === 201) {
+                return response.data;
+            } else {
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.log({error});
+            throw new Error(error);
         }
     }
 

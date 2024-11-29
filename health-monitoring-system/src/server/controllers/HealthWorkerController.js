@@ -2,7 +2,7 @@ import AuthController from "@/server/controllers/AuthController";
 import dbClient from "@/server/db/mongoDb";
 import getCareBaseModels from "@/server/models/CareBase/CareBase";
 import {loginValidator, signUpValidator} from "@/validators/healthWorkerValidators";
-import {beProfileUpdateValidator} from "@/validators/beProfileUpdateValidator";
+import {beHealthWorkerProfileUpdateValidator} from "@/validators/beProfileUpdateValidator";
 import mongoose from "mongoose";
 import {setLocationValidator} from "@/validators/locationValidator";
 
@@ -76,7 +76,9 @@ class HealthWorkerController {
             if (!isPasswordValid) {
               return new Error("Invalid credentials");
             }
-
+            // Set the user status to online
+            healthWorker.status = "online";
+            await healthWorker.save();
             return healthWorker; // Return the healthWorker
         } catch (error) {
             console.error("Error in Login:", error.message);
@@ -96,6 +98,9 @@ class HealthWorkerController {
             if (!healthWorkerProfile) {
                 return new Error("HealthWorker not found");
             }
+            // set the user profile status to offline
+            healthWorkerProfile.status = "offline";
+            await healthWorkerProfile.save();
             // Close the database connection
             return healthWorkerProfile;
         } catch (error) {
@@ -121,6 +126,9 @@ class HealthWorkerController {
             if (!healthWorkerProfile) {
               return new Error("HealthWorker profile not found");
             }
+            // set the user profile status to online
+            healthWorkerProfile.status = "online";
+            await healthWorkerProfile.save();
             return healthWorkerProfile;
         } catch (error) {
             console.error("Error in Profile:", error.message);
@@ -147,7 +155,7 @@ class HealthWorkerController {
             }
 
             // Validate input data using a Zod schema
-            const {success, data} = beProfileUpdateValidator.safeParse(obj);
+            const {success, data} = beHealthWorkerProfileUpdateValidator.safeParse(obj);
             if (!success) {
                 return new Error("Validation failed");
             }

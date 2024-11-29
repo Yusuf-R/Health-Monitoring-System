@@ -667,13 +667,13 @@ function ViewInsights({ userProfile }) {
     }
 
     return (
-        <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Container maxWidth="xl" sx={{ py: 0.5, m: 0 }}>
             {/* Header */}
             <Paper
                 elevation={3}
                 sx={{
                     p: 4,
-                    mb: 4,
+                    mb: 2,
                     borderRadius: '24px',
                     background: `linear-gradient(135deg, ${alpha('#004e92', 0.95)} 0%, ${alpha('#000428', 0.9)} 100%)`,
                     color: '#fff',
@@ -693,7 +693,7 @@ function ViewInsights({ userProfile }) {
                     >
                         Health Analytics Dashboard
                     </Typography>
-                    <Typography variant="h6" sx={{ color: alpha('#fff', 0.9), textAlign: 'center', maxWidth: '800px' }}>
+                    <Typography variant="h6" sx={{ color: alpha('#fff', 0.9), textAlign: 'center', maxWidth: '1000px' }}>
                         Track your progress, analyze trends, and achieve your health goals with detailed insights
                     </Typography>
                 </Stack>

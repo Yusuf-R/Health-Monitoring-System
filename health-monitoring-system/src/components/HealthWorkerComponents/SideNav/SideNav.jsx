@@ -1,0 +1,339 @@
+"use client";
+import {useRouter} from "next/navigation";
+import {useState} from "react";
+import {useMutation} from "@tanstack/react-query";
+import Box from "@mui/material/Box";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import SettingsIcon from "@mui/icons-material/Settings";
+import LogoutIcon from "@mui/icons-material/Logout";
+import Typography from "@mui/material/Typography";
+import PlaceIcon from '@mui/icons-material/Place';
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
+import Button from "@mui/material/Button";
+import {toast} from "sonner";
+import AdminUtils from "@/utils/AdminUtils";
+import {signOut} from 'next-auth/react';
+import {CircularProgress} from "@mui/material";
+import ArticleIcon from '@mui/icons-material/Article';
+import RssFeedIcon from '@mui/icons-material/RssFeed';
+import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates';
+import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
+import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
+import SpaIcon from '@mui/icons-material/Spa';
+import QuickreplyIcon from '@mui/icons-material/Quickreply';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import MarkEmailUnreadIcon from '@mui/icons-material/MarkEmailUnread';
+
+
+function SideNav({navState, activeRoute}) {
+    const router = useRouter();
+    const [confirmExit, setConfirmExit] = useState(false);
+    const [loggingOut, setLoggingOut] = useState(false);
+    const mutation = useMutation({
+        mutationKey: ['Logout'],
+        mutationFn: AdminUtils.healthWorkerLogout,
+        onSuccess: async () => {
+            await signOut({callbackUrl: '/authorization/health-worker'}); // Redirects after logout
+            toast.success('Logged out successfully');
+            setLoggingOut(false);
+            setConfirmExit(false); // Close dialog
+        },
+        onError: (error) => {
+            console.error('Logout error:', error);
+            toast.error('Logout failed. Please try again.');
+            setLoggingOut(false);
+        },
+    });
+
+    const handleLogout = () => {
+        try {
+            setLoggingOut(true);
+            mutation.mutate();
+        } catch (err) {
+            console.error('Logout error:', err);
+            setLoggingOut(false);
+            toast.error('Logout failed. Please try again.');
+        }
+    };
+
+    const handleNavigation = (route) => {
+        router.push(route);
+    };
+
+    const navWidth = navState === "full" ? 250 : navState === "icon" ? 80 : 0;
+    const showText = navState === "full";
+    const showIcons = navState !== "hidden";
+
+    const activeStyle = {
+        backgroundColor: "#374151",
+        borderRadius: "8px",
+    };
+
+    const hoverStyle = {
+        "&:hover": {
+            background: " linear-gradient(to right, #000428, #004e92)",
+            borderRadius: "8px",
+            cursor: "pointer",
+        },
+    };
+
+    return (
+        <Box
+            sx={{
+                width: navWidth,
+                transition: "width 0.3s",
+                color: "white",
+                display: navState === "hidden" ? "none" : "flex",
+                flexDirection: "column",
+                padding: showIcons ? "10px" : 0,
+                borderRight: "1px solid grey",
+                height: '100vh',
+            }}
+        >
+            {/* Dashboard */}
+            {showText && (
+                <Typography variant="overline" sx={{mb: 0, ml: 1}}>
+                    Dashboard
+                </Typography>
+            )}
+            <List>
+                <ListItem
+                    onClick={() => handleNavigation("/health-worker/dashboard")}
+                    sx={{...hoverStyle, ...(activeRoute === "/health-worker/dashboard" ? activeStyle : {})}}
+                >
+                    {showIcons && (
+                        <ListItemIcon sx={{color: "white"}}>
+                            <DashboardIcon/>
+                        </ListItemIcon>
+                    )}
+                    {showText && <ListItemText primary="Overview"/>}
+                </ListItem>
+            </List>
+
+            {/* Information Hub */}
+            {showText && (
+                <Typography variant="overline" sx={{mb: 0, ml: 1}}>
+                    Information Hub
+                </Typography>
+            )}
+            <List>
+                <ListItem
+                    onClick={() => handleNavigation("/health-worker/info-hub/news")}
+                    sx={{...hoverStyle, ...(activeRoute === "/health-worker/info-hub/news" ? activeStyle : {})}}
+                >
+                    {showIcons && (
+                        <ListItemIcon sx={{color: "skyblue"}}>
+                            <ArticleIcon/>
+                        </ListItemIcon>
+                    )}
+                    {showText && <ListItemText primary="News"/>}
+                </ListItem>
+
+                <ListItem
+                    onClick={() => handleNavigation("/health-worker/info-hub/feeds")}
+                    sx={{...hoverStyle, ...(activeRoute === "/health-worker/info-hub/feeds" ? activeStyle : {})}}
+                >
+                    {showIcons && (
+                        <ListItemIcon sx={{color: "orange"}}>
+                            <RssFeedIcon/>
+                        </ListItemIcon>
+                    )}
+                    {showText && <ListItemText primary="Feeds"/>}
+                </ListItem>
+
+                <ListItem
+                    onClick={() => handleNavigation("/health-worker/info-hub/tips-guides")}
+                    sx={{...hoverStyle, ...(activeRoute === "/health-worker/info-hub/tips-guides" ? activeStyle : {})}}
+                >
+                    {showIcons && (
+                        <ListItemIcon sx={{color: "violet"}}>
+                            <TipsAndUpdatesIcon/>
+                        </ListItemIcon>
+                    )}
+                    {showText && <ListItemText primary="Tips & Guides"/>}
+                </ListItem>
+            </List>
+
+            {/* Health Tools */}
+            {showText && (
+                <Typography variant="overline" sx={{mb: 0, ml: 1}}>
+                    Personalized Insights
+                </Typography>
+            )}
+            <List>
+                <ListItem
+                    onClick={() => handleNavigation("/health-worker/personalized")}
+                    sx={{...hoverStyle, ...(activeRoute === "/health-worker/personalized" ? activeStyle : {})}}
+                >
+                    {showIcons && (
+                        <ListItemIcon sx={{color: "white"}}>
+                            <DashboardIcon/>
+                        </ListItemIcon>
+                    )}
+                    {showText && <ListItemText primary="Overview"/>}
+                </ListItem>
+                <ListItem
+                    onClick={() => handleNavigation("/health-worker/personalized/health-check")}
+                    sx={{...hoverStyle, ...(activeRoute === "/health-worker/personalized/health-check" ? activeStyle : {})}}
+                >
+                    {showIcons && (
+                        <ListItemIcon sx={{color: "limegreen"}}>
+                            <SpaIcon/>
+                        </ListItemIcon>
+                    )}
+                    {showText && <ListItemText primary="Health Check"/>}
+                </ListItem>
+
+                <ListItem
+                    onClick={() => handleNavigation("/health-worker/personalized/logger")}
+                    sx={{...hoverStyle, ...(activeRoute === "/health-worker/personalized/logger" ? activeStyle : {})}}
+                >
+                    {showIcons && (
+                        <ListItemIcon sx={{color: "gold"}}>
+                            <MonitorHeartIcon/>
+                        </ListItemIcon>
+                    )}
+                    {showText && <ListItemText primary="Logger"/>}
+                </ListItem>
+            </List>
+
+            {/* Tools & Resources */}
+            {showText && (
+                <Typography variant="overline" sx={{mb: 0, ml: 1}}>
+                    Tools & Resources
+                </Typography>
+            )}
+            <List>
+
+
+                <ListItem
+                    onClick={() => handleNavigation("/health-worker/tools/inbox")}
+                    sx={{...hoverStyle, ...(activeRoute === "/health-worker/tools/inbox" ? activeStyle : {})}}
+                >
+                    {showIcons && (
+                        <ListItemIcon sx={{color: "limegreen"}}>
+                            <MarkEmailUnreadIcon/>
+                        </ListItemIcon>
+                    )}
+                    {showText && <ListItemText primary="Inbox"/>}
+                </ListItem>
+                {/*<ListItem*/}
+                {/*    onClick={() => handleNavigation("/user/tools/notifications")}*/}
+                {/*    sx={{...hoverStyle, ...(activeRoute === "/user/tools/notifications" ? activeStyle : {})}}*/}
+                {/*>*/}
+                {/*    {showIcons && (*/}
+                {/*        <ListItemIcon sx={{color: "gold"}}>*/}
+                {/*            <NotificationsIcon/>*/}
+                {/*        </ListItemIcon>*/}
+                {/*    )}*/}
+                {/*    {showText && <ListItemText primary="Notifications"/>}*/}
+                {/*</ListItem>*/}
+
+                <ListItem
+                    onClick={() => handleNavigation("/health-worker/tools/chat")}
+                    sx={{...hoverStyle, ...(activeRoute === "/health-worker/tools/chat" ? activeStyle : {})}}
+                >
+                    {showIcons && (
+                        <ListItemIcon sx={{color: "limegreen"}}>
+                            <QuickreplyIcon/>
+                        </ListItemIcon>
+                    )}
+                    {showText && <ListItemText primary="Chat"/>}
+                </ListItem>
+            </List>
+
+            {/* Community Health Trends */}
+            {showText && (
+                <Typography variant="overline" sx={{mb: 0, ml: 1}}>
+                    Community Trends
+                </Typography>
+            )}
+            <List>
+                <ListItem
+                    onClick={() => handleNavigation("/health-worker/dashboard/health-trends")}
+                    sx={{...hoverStyle, ...(activeRoute === "/health-worker/dashboard/health-trends" ? activeStyle : {})}}
+                >
+                    {showIcons && (
+                        <ListItemIcon sx={{color: "white"}}>
+                            <ArticleIcon/>
+                        </ListItemIcon>
+                    )}
+                    {showText && <ListItemText primary="Infographics"/>}
+                </ListItem>
+            </List>
+
+            {/* Management */}
+            {showText && (
+                <Typography variant="overline" sx={{mb: 0, ml: 1}}>
+                    Management
+                </Typography>
+            )}
+            <List>
+
+                <ListItem
+                    onClick={() => handleNavigation("/health-worker/settings")}
+                    sx={{...hoverStyle, ...(activeRoute === "/health-worker/settings" ? activeStyle : {})}}
+                >
+                    {showIcons && (
+                        <ListItemIcon sx={{color: "white"}}>
+                            <SettingsIcon/>
+                        </ListItemIcon>
+                    )}
+                    {showText && <ListItemText primary="Settings"/>}
+                </ListItem>
+
+                <ListItem
+                    onClick={() => setConfirmExit(true)} // Show confirmation dialog before logout
+                    sx={hoverStyle}
+                >
+                    {showIcons && (
+                        <ListItemIcon sx={{color: "white"}}>
+                            <LogoutIcon/>
+                        </ListItemIcon>
+                    )}
+                    {showText && <ListItemText primary="Logout"/>}
+                </ListItem>
+            </List>
+
+            {/* Confirmation Dialog for Logout */}
+            <Dialog open={confirmExit} onClose={() => setConfirmExit(false)}>
+                <DialogTitle>Confirm Logout</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>Are you sure you want to logout?</DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setConfirmExit(false)} variant="contained" color="success">
+                        No
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="error"
+                        onClick={(e) => {
+                            if (loggingOut) e.preventDefault();
+                            else handleLogout();
+                        }}
+                        endIcon={loggingOut && <CircularProgress size={20} color="inherit"/>}
+                        sx={{
+                            ...(loggingOut && {
+                                pointerEvents: "none", // Disable interaction while maintaining appearance
+                                opacity: 1,
+                            }),
+                        }}
+                    >
+                        {loggingOut ? "Logging out..." : "Yes"}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </Box>
+    );
+}
+
+export default SideNav;

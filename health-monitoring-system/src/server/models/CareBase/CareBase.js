@@ -41,12 +41,27 @@ const CareBaseSchema = new Schema({
     dob: { type: String, default: null },
     emergencyContacts: { type: [String], default: [] },
     profileStatus: { type: String, enum: ['Incomplete', 'Active'], default: 'Incomplete' },
-    religion: { type: String, enum: ['Christianity', 'Islam', 'Traditional', 'Others'], default:  null },
+    religion: { type: String, enum: [
+            "Christianity",
+            "Islam",
+            "Hinduism",
+            "Buddhism",
+            "Judaism",
+            "Sikhism",
+            "Agnostic",
+            "Atheist",
+            "Other", // Allow text input if selected
+        ], default:  null },
     missingFields: { type: [String], default: [] },
-    status: {
+    accountStatus: {
         type: String,
         enum: ['Active', 'Inactive', 'Deactivated', 'Suspended', 'Pending', 'Banned', 'Deleted', 'Blocked'],
         default: 'Active',
+    },
+    status: {
+        type: String,
+        enum: ['online', 'offline', 'busy'],
+        default: 'online',
     },
     avatar: { type: String, default: null },
     phoneNumber: { type: String, default: null },
@@ -160,8 +175,42 @@ const getCareBaseModels = async () => {
             default: [],
         },
         certifications: { type: [String], default: [] },
+        licenseNumber:{ type: String, required: null },
         assignedPatients: { type: [Schema.Types.ObjectId], ref: 'User', default: [] },
         department: { type: String, default: null },
+        specialization: {
+            type: String,
+            enum:  [
+                "General Medicine",
+                "Pediatrics",
+                "Obstetrics and Gynecology",
+                "Cardiology",
+                "Neurology",
+                "Orthopedics",
+                "Psychiatry",
+                "Dermatology",
+                "Dentistry",
+                "Ophthalmology",
+                "ENT (Ear, Nose, and Throat)",
+                "Physiotherapy",
+                "Nutrition and Dietetics",
+                "Public Health",
+                "Other", // Allow text input if selected
+            ],
+            default: null
+        },
+        experienceLevel : {
+            type: String,
+            enum:  [
+                "Intern",
+                "Junior Health Worker (1–2 years)",
+                "Mid-Level Health Worker (3–5 years)",
+                "Senior Health Worker (6–10 years)",
+                "Expert/Consultant (10+ years)",
+            ],
+            default: null
+        },
+
     });
 
     // StakeHolder-specific schema

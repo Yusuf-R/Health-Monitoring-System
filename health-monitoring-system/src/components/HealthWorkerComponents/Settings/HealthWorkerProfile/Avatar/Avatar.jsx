@@ -24,15 +24,15 @@ import { CircularProgress } from "@mui/material";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import AdminUtils from "@/utils/AdminUtils";
 
-function Avatar({ userProfile }) {
-    const [imgSrc, setImgSrc] = useState(userProfile.avatar || '');
+function Avatar({ healthWorkerProfile }) {
+    const [imgSrc, setImgSrc] = useState(healthWorkerProfile.avatar || '');
     const [croppedPicture, setCroppedPicture] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const [open, setOpen] = useState(false);
     const [crop, setCrop] = useState({});
     const [uploading, setUploading] = useState(false);
 
-    const [activeTab, setActiveTab] = useState('/user/profile/avatar');
+    const [activeTab, setActiveTab] = useState('/health-worker/settings/profile/avatar');
 
     const pathname = usePathname();
     const router = useRouter();
@@ -54,7 +54,7 @@ function Avatar({ userProfile }) {
     });
 
     const handleClear = () => {
-        setImgSrc(userProfile.avatar || '');
+        setImgSrc(healthWorkerProfile.avatar || '');
         setCroppedPicture('');
         setErrorMessage('');
         setOpen(false);
@@ -109,8 +109,8 @@ function Avatar({ userProfile }) {
 
     const queryClient = useQueryClient();
     const mutation = useMutation({
-        mutationKey: ["UserAvatar"],
-        mutationFn: AdminUtils.userAvatar
+        mutationKey: ["HealthWorkerAvatar"],
+        mutationFn: AdminUtils.healthWorkerAvatar
     });
 
 
@@ -165,10 +165,10 @@ function Avatar({ userProfile }) {
 
             mutation.mutate(formData, {
                 onSuccess: () => {
-                    queryClient.invalidateQueries(["UserData"]);
+                    queryClient.invalidateQueries(["HealthWorkerData"]);
                     router.refresh();
                     toast.success('Image uploaded successfully');
-                    router.push('/user/settings/profile');
+                    router.push('/health-worker/settings/profile');
                     setUploading(false);
                 },
                 onError: (error) => {
@@ -188,9 +188,9 @@ function Avatar({ userProfile }) {
     useEffect(() => {
         // Update activeTab based on pathname
         if (pathname.includes('avatar')) {
-            setActiveTab('/user/settings/profile/avatar');
+            setActiveTab('/health-worker/settings/profile/avatar');
         } else {
-            setActiveTab('/user/settings/profile');
+            setActiveTab('/health-worker/settings/profile');
         }
     }, [pathname]);
 
@@ -237,8 +237,8 @@ function Avatar({ userProfile }) {
                         <Tab
                             label="Profile"
                             component={Link}
-                            href="/user/profile"
-                            value="/user/profile"
+                            href="/health-worker/settings/profile"
+                            value="/health-worker/settings/profile"
                             sx={{
                                 color: "#FFF",
                                 fontWeight: 'bold',
@@ -251,8 +251,8 @@ function Avatar({ userProfile }) {
                         <Tab
                             label="Avatar"
                             component={Link}
-                            href="/user/profile/avatar"
-                            value="/user/profile/avatar"
+                            href="/health-worker/settings/profile/avatar"
+                            value="/health-worker/settings/profile/avatar"
                             sx={{
                                 color: "#FFF",
                                 fontWeight: 'bold',

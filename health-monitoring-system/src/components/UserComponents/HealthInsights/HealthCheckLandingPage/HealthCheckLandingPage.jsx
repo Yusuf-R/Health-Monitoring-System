@@ -44,7 +44,7 @@ const features = [
         title: 'Contribute to Statistics',
         description: 'Help healthcare providers by contributing to real-time data on your health activities in your community.',
         color: '#FFA726',
-        route: '/user/personalized/activities',
+        route: '/user/personalized/logger/activity-tracker',
         buttonText: 'View Activities'
     },
     {
@@ -52,7 +52,7 @@ const features = [
         title: 'Contact Health Experts',
         description: 'Easily reach out to local healthcare professionals or practitioners for tailored assistance.',
         color: '#9C27B0',
-        route: '/user/health-check/contact',
+        route: '/user/tools/chat',
         buttonText: 'Contact Now'
     }
 ];
@@ -182,22 +182,6 @@ function HealthCheckLandingPage() {
                     }}>
                         Take the first step today towards a healthier, more informed lifestyle with our comprehensive health tools.
                     </Typography>
-                    <Button
-                        variant="outlined"
-                        endIcon={<ArrowIcon />}
-                        onClick={() => router.push('/user/health-check/overview')}
-                        sx={{
-                            mt: 2,
-                            borderColor: '#00CC00',
-                            color: '#ff9933',
-                            '&:hover': {
-                                borderColor: '#46F0F9',
-                                bgcolor: alpha('#46F0F9', 0.1)
-                            }
-                        }}
-                    >
-                        Learn More About Our Tools
-                    </Button>
                 </Stack>
             </Paper>
         </Container>

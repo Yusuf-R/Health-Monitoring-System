@@ -1,28 +1,27 @@
 'use client';
-import UnderConstruction from "@/components/UnderConstruction/UnderConstruction";
 import {useQuery, useQueryClient} from "@tanstack/react-query";
 import AdminUtils from "@/utils/AdminUtils";
 import LazyLoading from "@/components/LazyLoading/LazyLoading";
 import {Suspense} from "react";
 import DataFetchError from "@/components/Errors/DataFetchError/DataFetchError";
-import ChatBox from "@/components/UserComponents/Tools/ChatBox";
+import ChatBox from "@/components/HealthWorkerComponents/Tools/ChatBox";
 
 function Chat() {
     const queryClient = useQueryClient();
 
     // Retrieve cached user profile
-    const {userProfile} = queryClient.getQueryData(["UserData"]) || {};
+    const {healthWorkerProfile} = queryClient.getQueryData(["HealthWorkerData"]) || {};
 
     // Fetch user profile if not already cached
     const {data, isLoading, isError} = useQuery({
-        queryKey: ["UserData"],
-        queryFn: AdminUtils.userProfile,
+        queryKey: ["HealthWorkerData"],
+        queryFn: AdminUtils.healthWorkerProfile,
         staleTime: Infinity,
-        enabled: !userProfile, // Skip fetching if profile exists
+        enabled: !healthWorkerProfile, // Skip fetching if profile exists
     });
 
     // Effective user data (cached or fetched)
-    const effectiveUserData = userProfile || data;
+    const effectiveUserData = healthWorkerProfile || data;
 
     // Handle loading state
     if (isLoading) {
@@ -41,7 +40,7 @@ function Chat() {
     }
     return (
         <Suspense fallback={<LazyLoading/>}>
-            <ChatBox userProfile={effectiveUserData}/>
+            <ChatBox healthWorkerProfile={effectiveUserData}/>
         </Suspense>
     )
 }
