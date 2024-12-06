@@ -3,7 +3,6 @@ import "./globals.css";
 import ReactQueryProvider from "@/components/ReactQuery/ReactQueryProvider";
 import { Toaster } from "sonner";
 
-
 const geistSans = localFont({
     src: "./fonts/GeistVF.woff",
     variable: "--font-geist-sans",
@@ -17,7 +16,7 @@ const geistMono = localFont({
 
 export const metadata = {
     title: "Health Monitoring System",
-    description: "A communited health care app for wellbeing",
+    description: "A community health care app for wellbeing",
 };
 
 export default function RootLayout({ children }) {

@@ -1,8 +1,9 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
 import { useRouter } from 'next/navigation';
 import { keyframes } from '@mui/material/styles';
 import { motion } from 'framer-motion';
@@ -14,11 +15,11 @@ const backgroundImages = {
   stakeholder: 'url("/pic6.png")',
 };
 
-// Animation for the button hover effect
-const hoverEffect = keyframes`
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
+// Subtle floating animation
+const floatEffect = keyframes`
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
 `;
 
 // Animation for heading entrance
@@ -30,6 +31,14 @@ const fadeIn = {
 
 function GetStarted() {
   const router = useRouter();
+  const [loading, setLoading] = useState({ user: false, healthWorker: false });
+
+  const handleGetStarted = async (route, role) => {
+    setLoading(prev => ({ ...prev, [role]: true }));
+    // Simulate a small delay to show loading state
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    router.push(route);
+  };
 
   // Category cards with buttons for each role
   const categories = [
@@ -38,19 +47,15 @@ function GetStarted() {
       description: 'Discover health insights, track wellness, and connect with mentors.',
       backgroundImage: backgroundImages.user,
       route: '/authorization/user',
+      role: 'user',
     },
     {
       title: 'Health Worker',
       description: 'Access community health data, provide mentorship, and assist in health monitoring.',
       backgroundImage: backgroundImages.healthWorker,
       route: '/authorization/health-worker',
+      role: 'healthWorker',
     },
-    // {
-    //   title: 'Stakeholder',
-    //   description: 'Analyze community health trends and contribute to informed decision-making.',
-    //   backgroundImage: backgroundImages.stakeholder,
-    //   route: '/authorization/stakeholder',
-    // },
   ];
 
   return (
@@ -64,7 +69,6 @@ function GetStarted() {
         padding: '60px 20px',
         textAlign: 'center',
         color: 'white',
-        // background: 'linear-gradient(to right, #004e92, #000428)',
       }}
     >
       {/* Introductory Heading and Text */}
@@ -90,7 +94,7 @@ function GetStarted() {
           maxWidth: '1200px',
         }}
       >
-        {categories.map(({ title, description, backgroundImage, route }) => (
+        {categories.map(({ title, description, backgroundImage, route, role }) => (
           <Box
             key={title}
             sx={{
@@ -99,47 +103,61 @@ function GetStarted() {
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'flex-end',
-              alignItems: 'center',
-              borderRadius: '10px',
-              overflow: 'hidden',
+              padding: '20px',
+              borderRadius: '15px',
               backgroundImage,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
-              boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.2)',
               position: 'relative',
-              color: 'white',
+              overflow: 'hidden',
+              cursor: 'pointer',
+              transition: 'transform 0.3s ease-in-out',
+              animation: `${floatEffect} 3s ease-in-out infinite`,
               '&:hover': {
-                animation: `${hoverEffect} 0.6s ease-in-out infinite`,
+                transform: 'scale(1.02)',
+              },
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: '70%',
+                background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)',
               },
             }}
           >
-            <Box
-              sx={{
-                padding: '20px',
-                backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                width: '100%',
-                textAlign: 'center',
-              }}
-            >
-              <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 1 }}>
+            <Box sx={{ position: 'relative', zIndex: 1 }}>
+              <Typography variant="h5" sx={{ mb: 2, fontWeight: 'bold' }}>
                 {title}
               </Typography>
-              <Typography variant="body2" sx={{ mb: 2 }}>
+              <Typography variant="body2" sx={{ mb: 3 }}>
                 {description}
               </Typography>
               <Button
                 variant="contained"
+                disabled={loading[role]}
+                onClick={() => handleGetStarted(route, role)}
                 sx={{
-                  backgroundColor: '#46F0F9',
-                  color: '#0E1E1E',
-                  fontWeight: 'bold',
-                  "&:hover": {
-                    backgroundColor: '#34C0D9',
+                  backgroundColor: '#2196f3',
+                  color: 'white',
+                  '&:hover': {
+                    backgroundColor: '#1976d2',
+                  },
+                  '&.Mui-disabled': {
+                    backgroundColor: '#90caf9',
+                    color: 'white',
                   },
                 }}
-                onClick={() => router.push(route)}
               >
-                Get Started
+                {loading[role] ? (
+                  <>
+                    <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} />
+                    Processing...
+                  </>
+                ) : (
+                  'Get Started'
+                )}
               </Button>
             </Box>
           </Box>

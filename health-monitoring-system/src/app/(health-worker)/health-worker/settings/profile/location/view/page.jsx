@@ -24,18 +24,18 @@ function ViewHealthWorkerLocation() {
     });
 
     // Effective user data (cached or fetched)
-    const effectiveUserData = healthWorkerProfile || data;
+    const effectiveHealthWorkerData = healthWorkerProfile || data;
 
     // Encrypt and store profile data
     const encryptAndStoreData = useCallback(async () => {
-        if (effectiveUserData) {
+        if (effectiveHealthWorkerData) {
             try {
-                await AdminUtils.encryptAndStoreProfile(effectiveUserData);
+                await AdminUtils.encryptAndStoreProfile(effectiveHealthWorkerData);
             } catch (error) {
                 console.error("Encryption Error:", error);
             }
         }
-    }, [effectiveUserData]);
+    }, [effectiveHealthWorkerData]);
 
     useEffect(() => {
         (async () => {
@@ -56,7 +56,7 @@ function ViewHealthWorkerLocation() {
     // Render view location component with fallback
     return (
         <Suspense fallback={<LazyLoading />}>
-            <ViewLocation healthWorkerProfile={effectiveUserData} />
+            <ViewLocation healthWorkerProfile={effectiveHealthWorkerData} />
         </Suspense>
     );
 }

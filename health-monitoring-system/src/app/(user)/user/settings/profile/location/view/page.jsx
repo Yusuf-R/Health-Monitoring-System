@@ -7,7 +7,7 @@ import DataFetchError from "@/components/Errors/DataFetchError/DataFetchError";
 import Box from "@mui/material/Box";
 
 // Lazy-loaded update profile component
-const ViewLocation = lazy(() => import("@/components/UserComponents/UserProfile/Location/ViewLocation/ViewLocation"));
+const ViewLocation = lazy(() => import("@/components/UserComponents/Settings/UserProfile/Location/ViewLocation/ViewLocation"));
 
 function ViewUserLocation() {
     const queryClient = useQueryClient();

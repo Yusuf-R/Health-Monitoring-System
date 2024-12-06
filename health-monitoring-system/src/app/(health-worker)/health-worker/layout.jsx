@@ -152,11 +152,6 @@ function HealthWorkerLayout({children}) {
     }
 
     const sideNavWidth = navState === "full" ? 250 : navState === "icon" ? 80 : 0;
-    console.log({
-        from: 'Layout',
-        healthWorkerProfile: effectiveHealthWorkerData,
-    })
-
     return (
         <Box
             sx={{

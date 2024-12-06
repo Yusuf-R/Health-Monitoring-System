@@ -21,7 +21,7 @@ function Chat() {
     });
 
     // Effective user data (cached or fetched)
-    const effectiveUserData = healthWorkerProfile || data;
+    const effectiveHealthWorkerData = healthWorkerProfile || data;
 
     // Handle loading state
     if (isLoading) {
@@ -40,7 +40,7 @@ function Chat() {
     }
     return (
         <Suspense fallback={<LazyLoading/>}>
-            <ChatBox healthWorkerProfile={effectiveUserData}/>
+            <ChatBox healthWorkerProfile={effectiveHealthWorkerData}/>
         </Suspense>
     )
 }

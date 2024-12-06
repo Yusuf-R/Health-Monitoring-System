@@ -26,7 +26,7 @@ function EditHealthWorkerLocation() {
     });
 
     // Effective user data (cached or fetched)
-    const effectiveUserData = healthWorkerProfile || data;
+    const effectiveHealthWorkerData = healthWorkerProfile || data;
 
     // Handle loading state
     if (isLoading) {
@@ -41,7 +41,7 @@ function EditHealthWorkerLocation() {
     // Render edit location component with fallback
     return (
         <Suspense fallback={<LazyLoading />}>
-            <EditLocation healthWorkerProfile={effectiveUserData} geoId={geoId} />
+            <EditLocation healthWorkerProfile={effectiveHealthWorkerData} geoId={geoId} />
         </Suspense>
     );
 }

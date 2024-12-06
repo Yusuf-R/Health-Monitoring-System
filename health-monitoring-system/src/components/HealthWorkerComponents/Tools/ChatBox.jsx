@@ -23,8 +23,10 @@ import {Circle as CircleIcon, Send as SendIcon} from '@mui/icons-material';
 import {addDoc, collection, doc, onSnapshot, orderBy, query, serverTimestamp, updateDoc, where} from 'firebase/firestore';
 import {db} from '@/server/db/fireStore';
 import {format} from 'date-fns';
+import { useChatStore } from '@/store/useChatStore'; // Import the chat store hook
 
 function ChatBox({healthWorkerProfile}) {
+    const { setInChatView, setActiveChatId, clearChatNotifications } = useChatStore(); // Get the necessary functions from the chat store
     const [selectedChat, setSelectedChat] = useState(null);
     const [activeChats, setActiveChats] = useState([]);
     const [messages, setMessages] = useState([]);
@@ -114,40 +116,46 @@ function ChatBox({healthWorkerProfile}) {
         return () => unsubscribe();
     }, [healthWorkerProfile?._id]);
 
-    // Debug log for active chats
-    useEffect(() => {
-        console.log('Active Chats:', activeChats);
-    }, [activeChats]);
-
-    // Debug log for selected chat
-    useEffect(() => {
-        console.log('Selected Chat:', selectedChat);
-    }, [selectedChat]);
-
     // Fetch messages for the selected chat
     useEffect(() => {
-        if (!selectedChat?.id) {
+        if (!selectedChat?.id || !healthWorkerProfile?._id) {
             return;
         }
 
-        console.log('Fetching messages for chat:', selectedChat.id);
 
         const messagesRef = collection(db, 'chats', selectedChat.id, 'messages');
         const messagesQuery = query(messagesRef, orderBy('timestamp', 'asc'));
 
-        const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
+        const unsubscribe = onSnapshot(messagesQuery, async (snapshot) => {
             const fetchedMessages = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             }));
             console.log('Fetched messages:', fetchedMessages);
             setMessages(fetchedMessages);
+
+            // Mark user's messages as read
+            const batch = [];
+            snapshot.docs.forEach(doc => {
+                const message = doc.data();
+                if (message.sender.role === 'User' && message.status === 'sent') {
+                    batch.push(updateDoc(doc.ref, { status: 'read' }));
+                }
+            });
+
+            if (batch.length > 0) {
+                try {
+                    await Promise.all(batch);
+                } catch (error) {
+                    console.error('Error marking messages as read:', error);
+                }
+            }
         }, (error) => {
             console.error('Error fetching messages:', error);
         });
 
         return () => unsubscribe();
-    }, [selectedChat?.id]);
+    }, [selectedChat?.id, healthWorkerProfile?._id]);
 
     // Handle sending a message
     const handleSendMessage = async (e) => {
@@ -171,9 +179,14 @@ function ChatBox({healthWorkerProfile}) {
             // Add message to subcollection
             await addDoc(collection(db, 'chats', selectedChat.id, 'messages'), messageData);
 
-            // Update chat's last message
+            // Update chat's last message with sender information
             await updateDoc(doc(db, 'chats', selectedChat.id), {
-                lastMessage: messageData.content,
+                lastMessage: {
+                    content: messageData.content,
+                    sender: messageData.sender,
+                    timestamp: serverTimestamp(),
+                    status: 'sent'
+                },
                 lastMessageAt: serverTimestamp(),
                 updatedAt: serverTimestamp()
             });
@@ -182,12 +195,6 @@ function ChatBox({healthWorkerProfile}) {
         } catch (error) {
             console.error('Error sending message:', error);
         }
-    };
-
-    // Handle tab change
-    const handleTabChange = (event, newValue) => {
-        setCurrentTab(newValue);
-        setSelectedChat(null); // Reset selected chat when switching tabs
     };
 
     // Start new chat or open existing chat
@@ -235,6 +242,26 @@ function ChatBox({healthWorkerProfile}) {
             console.error('Error creating chat:', error);
         }
     };
+
+    // Handle tab change
+    const handleTabChange = (event, newValue) => {
+        setCurrentTab(newValue);
+        setSelectedChat(null); // Reset selected chat when switching tabs
+    };
+
+    // Set chat view status when component mounts/unmounts
+    useEffect(() => {
+        setInChatView(true);
+        return () => setInChatView(false);
+    }, [setInChatView]);
+
+    // Update active chat and clear notifications when user is selected
+    useEffect(() => {
+        if (selectedChat && selectedChat.id) {
+            setActiveChatId(selectedChat.id);
+            clearChatNotifications(selectedChat.id);
+        }
+    }, [selectedChat, setActiveChatId, clearChatNotifications]);
 
     if (loading) {
         return (

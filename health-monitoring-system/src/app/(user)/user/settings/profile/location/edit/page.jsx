@@ -8,7 +8,7 @@ import DataFetchError from "@/components/Errors/DataFetchError/DataFetchError";
 import useLocationStore from "@/store/useLocationStore";
 
 // Lazy-loaded update profile component
-const EditLocation = lazy(() => import("@/components/UserComponents/UserProfile/Location/EditLocation/EditLocation"));
+const EditLocation = lazy(() => import("@/components/UserComponents/Settings/UserProfile/Location/EditLocation/EditLocation"));
 
 function EditUserLocation() {
     const queryClient = useQueryClient();

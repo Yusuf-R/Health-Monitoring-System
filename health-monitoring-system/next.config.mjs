@@ -44,6 +44,7 @@ const nextConfig = {
         ignoreDuringBuilds: true,
     },
     crossOrigin: 'anonymous',
+    reactStrictMode: false,
 
 };
 

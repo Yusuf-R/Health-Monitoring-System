@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import DataFetchError from "@/components/Errors/DataFetchError/DataFetchError";
 
 // Lazy-loaded update profile component
-const Avatar = lazy(() => import("@/components/UserComponents/UserProfile/Avatar/Avatar"));
+const Avatar = lazy(() => import("@/components/UserComponents/Settings/UserProfile/Avatar/Avatar"));
 
 function UserAvatar () {
     const router = useRouter();

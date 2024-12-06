@@ -55,7 +55,7 @@ const features = [
     {
         title: "Connect with Doctors",
         icon: <HospitalIcon/>,
-        route: '/user/settings/chats',
+        route: '/user/tools/chat',
         btnColor: '#9C27B0',
     },
 ];
@@ -135,7 +135,7 @@ function SymptomLogger({userProfile}) {
                     senderName: 'Health System',
                     title: 'Symptom Log Follow-up - Healthcare Provider Review',
                     content: `Thank you for logging your symptoms. Based on your request, a healthcare provider will review your symptoms and contact you shortly.
-
+                    
 Symptom Details:
 - Category: ${selectedCategory}
 - Intensity: ${symptomIntensity}/10
