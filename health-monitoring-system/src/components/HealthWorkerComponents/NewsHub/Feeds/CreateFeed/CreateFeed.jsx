@@ -31,7 +31,9 @@ import {toast} from 'sonner';
 import {statesAndLGAs} from "@/utils/data";
 import {useRouter} from 'next/navigation';
 import {ArrowBack as ArrowBackIcon} from "@mui/icons-material";
-import TipTapEditor from "@/components/TipTapEditor/TipTapEditor"
+import TipTapEditor from "@/components/TipTapEditor/TipTapEditor";
+import { NotificationManager } from '@/utils/notificationManager';
+import { NOTIFICATION_TYPES, NOTIFICATION_SCOPES } from '@/utils/notificationTypes';
 
 const FEED_TYPES = ['advice', 'alerts', 'events', 'polls'];
 
@@ -264,8 +266,8 @@ function CreateFeed({healthWorkerProfile}) {
                 snippet: snippet.trim(),
                 type,
                 scope: {lga, state, country},
-                timestamp: new Date().toISOString(),
-                alternativeNames: alternativeNames.length > 0 ? alternativeNames : undefined,
+                timestamp: serverTimestamp(),
+                ...(alternativeNames.length > 0 && { alternativeNames }),
                 content: type === 'advice' ? {
                     ...adviceContent,
                     commonTypes
@@ -277,35 +279,25 @@ function CreateFeed({healthWorkerProfile}) {
                 }
             };
 
+            console.log({feedData});
+
+            // Create the feed
             const docRef = await addDoc(collection(db, 'feeds'), feedData);
 
-            // Create notification
-            const notificationData = {
-                type: 'new_feed',
-                title: 'New Feed Published',
-                message: `A new ${type} feed "${title}" has been published`,
-                feedId: docRef.id,
-                feedType: type,
-                status: 'unread',
-                actionUrl: `/info-hub/feeds/${docRef.id}`,
-                createdAt: serverTimestamp(),
-                userId: healthWorkerProfile._id,
-                contentId: docRef.id,
-                contentType: 'feed',
-                author: {
-                    id: healthWorkerProfile._id,
-                    name: healthWorkerProfile.firstName,
-                    role: 'HealthWorker'
+            // Create notification using NotificationManager
+            await NotificationManager.createFeedNotification(
+                {
+                    id: docRef.id,
+                    title: feedData.title,
+                    type: feedData.type,
+                    snippet: feedData.snippet
                 },
-                scope: {
-                    lga,
-                    state,
-                    country
-                }
-            };
+                feedData.scope,
+                feedData.author
+            );
 
-            await addDoc(collection(db, 'notifications'), notificationData);
             toast.success('Feed published successfully!');
+            router.push('/health-worker/info-hub/feeds');
 
             // Reset form
             setTitle('');
@@ -313,8 +305,6 @@ function CreateFeed({healthWorkerProfile}) {
             setType('advice');
             setState('');
             setLGA('');
-            setCountry('Nigeria');
-            setAlternativeNames([]);
             setAdviceContent({
                 introduction: '',
                 causes: [],
@@ -335,7 +325,6 @@ function CreateFeed({healthWorkerProfile}) {
 
         } catch (error) {
             console.error('Error publishing feed:', error);
-            setIsSubmitting(false);
             toast.error('Failed to publish feed. Please try again.');
         } finally {
             setIsSubmitting(false);
@@ -344,18 +333,6 @@ function CreateFeed({healthWorkerProfile}) {
 
     const renderAdviceForm = () => (
         <>
-            {/*<Grid size={{xs: 12}}>*/}
-            {/*    <TextField*/}
-            {/*        fullWidth*/}
-            {/*        label="Introduction"*/}
-            {/*        value={adviceContent.introduction}*/}
-            {/*        onChange={(e) => setAdviceContent(prev => ({...prev, introduction: e.target.value}))}*/}
-            {/*        multiline*/}
-            {/*        rows={3}*/}
-            {/*        required*/}
-            {/*    />*/}
-            {/*</Grid>*/}
-
             <Grid size={{ xs: 12 }}>
                 <TipTapEditor
                     value={adviceContent.introduction}

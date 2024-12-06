@@ -21,6 +21,8 @@ import TipTapEditor from '@/components/TipTapEditor/TipTapEditor';
 import {statesAndLGAs} from "@/utils/data";
 import {ArrowBack as ArrowBackIcon} from "@mui/icons-material";
 import {useRouter} from "next/navigation";
+import { NotificationManager } from '@/utils/notificationManager';
+import { NOTIFICATION_TYPES, NOTIFICATION_SCOPES } from '@/utils/notificationTypes';
 
 const NEWS_CATEGORIES = [
     'Health Alert',
@@ -96,7 +98,7 @@ function CreateNews({ healthWorkerProfile }) {
                 snippet: snippet.trim(),
                 content: content.trim(),
                 category,
-                scope: {lga, state, country},
+                scope: { lga, state, country },
                 timestamp: new Date().toISOString(),
                 author: {
                     id: healthWorkerProfile._id,
@@ -106,67 +108,24 @@ function CreateNews({ healthWorkerProfile }) {
                 status: 'published'
             };
 
-            const docRef = await addDoc(collection(db, 'news'), newsData);
+            // Create the news article
+            const newsRef = collection(db, 'news');
+            const newsDoc = await addDoc(newsRef, newsData);
 
-            // Get all users in the specified scope
-            const usersRef = collection(db, 'users');
-            let scopeQuery;
+            // Create notification using the improved notification manager
+            await NotificationManager.createNewsNotification(
+                {
+                    id: newsDoc.id,
+                    title: newsData.title,
+                    category: newsData.category,
+                    snippet: newsData.snippet
+                },
+                newsData.scope,
+                newsData.author
+            );
 
-            if (lga) {
-                // Local news - only users in specific LGA
-                scopeQuery = query(usersRef, where('lga', '==', lga));
-            } else if (state) {
-                // State news - only users in specific state
-                scopeQuery = query(usersRef, where('state', '==', state));
-            } else {
-                // National news - all users in the collection
-                scopeQuery = query(usersRef);
-            }
-
-            const usersSnapshot = await getDocs(scopeQuery);
-
-            if (usersSnapshot.empty) {
-                console.log('No users found in the specified scope');
-            }
-
-            // Create notifications for all users in the scope
-            const notificationPromises = usersSnapshot.docs.map(userDoc => {
-                const notificationData = {
-                    type: 'new_news',
-                    title: `${category}: ${title}`,
-                    message: `New ${category.toLowerCase()} has been published${lga ? ` for ${lga}` : state ? ` for ${state}` : ' nationwide'}: ${title}`,
-                    status: 'unread',
-                    actionUrl: `/news/${docRef.id}`,
-                    createdAt: serverTimestamp(),
-                    contentId: docRef.id,
-                    contentType: 'news',
-                    author: {
-                        id: healthWorkerProfile._id,
-                        name: healthWorkerProfile.firstName,
-                        role: 'HealthWorker'
-                    },
-                    userId: userDoc.id,
-                    scope: {lga, state, country},
-                    read: false
-                };
-
-                return addDoc(collection(db, 'notifications'), notificationData);
-            });
-
-            // Wait for all notifications to be created
-            await Promise.all(notificationPromises);
-
-            toast.success('News article published successfully!');
-
-            // Reset form
-            setTitle('');
-            setSnippet('');
-            setContent('');
-            setType('advice');
-            setState('');
-            setLGA('');
-            setCategory('Health Alert');
-
+            toast.success('News article published successfully');
+            router.push('/health-worker/info-hub/news');
 
         } catch (error) {
             console.error('Error publishing news:', error);

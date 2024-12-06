@@ -22,7 +22,7 @@ export const NotificationManager = {
     createScopedNotification: async (scope, scopeValue, data) => {
         const usersRef = collection(db, 'users');
         const notificationsRef = collection(db, 'notifications');
-        
+
         // Query users based on scope
         let userQuery;
         switch(scope) {
@@ -40,9 +40,9 @@ export const NotificationManager = {
         }
 
         const usersSnapshot = await getDocs(userQuery);
-        
+
         // Create notifications for all users in scope
-        const notificationPromises = usersSnapshot.docs.map(userDoc => 
+        const notificationPromises = usersSnapshot.docs.map(userDoc =>
             addDoc(notificationsRef, {
                 ...data,
                 userId: userDoc.id,
@@ -101,8 +101,44 @@ export const NotificationManager = {
             title: `New message from ${sender.name}`,
             message: message.substring(0, 100) + (message.length > 100 ? '...' : ''),
             contentId: sender.id,
-            actionUrl: `user/tools/chat/${sender.id}`,
+            actionUrl: `/user/tools/chat/${sender.id}`,
             author: sender
         });
+    },
+
+    // Helper function to create feed notifications
+    createFeedNotification: async (feedData, scope, author) => {
+        const notificationData = {
+            type: NOTIFICATION_TYPES.FEED,
+            title: `New ${feedData.type}: ${feedData.title}`,
+            message: feedData.snippet,
+            contentId: feedData.id,
+            actionUrl: `/user/info-hub/feeds/${feedData.id}`,
+            author: {
+                id: author.id,
+                name: author.name,
+                role: author.role
+            }
+        };
+
+        if (scope.lga) {
+            return NotificationManager.createScopedNotification(
+                NOTIFICATION_SCOPES.LGA,
+                scope.lga,
+                notificationData
+            );
+        } else if (scope.state) {
+            return NotificationManager.createScopedNotification(
+                NOTIFICATION_SCOPES.STATE,
+                scope.state,
+                notificationData
+            );
+        } else {
+            return NotificationManager.createScopedNotification(
+                NOTIFICATION_SCOPES.NATIONAL,
+                'Nigeria',
+                notificationData
+            );
+        }
     }
 };
