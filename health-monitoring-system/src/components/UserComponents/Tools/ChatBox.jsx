@@ -35,6 +35,8 @@ import { collection, query, where, onSnapshot, addDoc, serverTimestamp, orderBy,
 import { db } from '@/server/db/fireStore';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import  { useChatStore }  from '@/store/useChatStore';
 
 function ChatBox({ userProfile }) {
     const router = useRouter();
@@ -45,6 +47,7 @@ function ChatBox({ userProfile }) {
     const [loading, setLoading] = useState(true);
     const [activeChatId, setActiveChatId] = useState(null);
     const [activeTab, setActiveTab] = useState(0); // Default to Chat tab
+    const { setInChatView, setActiveChatId: setChatId, resetUnreadMessages, clearChatNotifications } = useChatStore();
 
     // Navigation tabs configuration
     const navigationTabs = [
@@ -140,9 +143,23 @@ function ChatBox({ userProfile }) {
         findOrCreateChat();
     }, [selectedWorker, userProfile]);
 
+    // Set chat view status when component mounts/unmounts
+    useEffect(() => {
+        setInChatView(true);
+        return () => setInChatView(false);
+    }, [setInChatView]);
+
+    // Update active chat and clear notifications when worker is selected
+    useEffect(() => {
+        if (selectedWorker && activeChatId) {
+            setChatId(activeChatId);
+            clearChatNotifications(activeChatId);
+        }
+    }, [selectedWorker, activeChatId, setChatId, clearChatNotifications]);
+
     // Fetch messages when chat is active
     useEffect(() => {
-        if (!activeChatId) {
+        if (!activeChatId || !userProfile?._id) {
             return;
         }
 
@@ -151,16 +168,33 @@ function ChatBox({ userProfile }) {
             orderBy('timestamp', 'asc')
         );
 
-        const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
+        const unsubscribe = onSnapshot(messagesQuery, async (snapshot) => {
             const newMessages = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             }));
             setMessages(newMessages);
+
+            // Mark health worker's messages as read
+            const batch = [];
+            snapshot.docs.forEach(doc => {
+                const message = doc.data();
+                if (message.sender.role === 'HealthWorker' && message.status === 'sent') {
+                    batch.push(updateDoc(doc.ref, { status: 'read' }));
+                }
+            });
+
+            if (batch.length > 0) {
+                try {
+                    await Promise.all(batch);
+                } catch (error) {
+                    console.error('Error marking messages as read:', error);
+                }
+            }
         });
 
         return () => unsubscribe();
-    }, [activeChatId]);
+    }, [activeChatId, userProfile?._id]);
 
     const handleSendMessage = async (e) => {
         e.preventDefault();
@@ -183,9 +217,14 @@ function ChatBox({ userProfile }) {
             // Add message to subcollection
             await addDoc(collection(db, 'chats', activeChatId, 'messages'), messageData);
 
-            // Update chat's last message
+            // Update chat's last message with sender information
             await updateDoc(doc(db, 'chats', activeChatId), {
-                lastMessage: messageData.content,
+                lastMessage: {
+                    content: messageData.content,
+                    sender: messageData.sender,
+                    timestamp: serverTimestamp(),
+                    status: 'sent'
+                },
                 lastMessageAt: serverTimestamp(),
                 updatedAt: serverTimestamp()
             });

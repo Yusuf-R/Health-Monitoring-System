@@ -85,6 +85,12 @@ function UserLayout({children}) {
                             tipsGuides: true,
                             categories: [], // User can customize later
                             email: true,
+                            scope: {
+                                personal: true,
+                                lga: true,
+                                state: true,
+                                national: true
+                            },
                             push: true
                         },
                         lastActive: serverTimestamp(),
@@ -138,6 +144,9 @@ function UserLayout({children}) {
                     name: effectiveUserData.firstName || '',
                     firstName: effectiveUserData.firstName || '',
                     lastName: effectiveUserData.lastName || '',
+                    lga: effectiveUserData.currlga || '',
+                    state: effectiveUserData.stateOfResidence || '',
+                    country: effectiveUserData.country || 'Nigeria',
                     lastActive: serverTimestamp(),
                     updatedAt: serverTimestamp(),
                 });

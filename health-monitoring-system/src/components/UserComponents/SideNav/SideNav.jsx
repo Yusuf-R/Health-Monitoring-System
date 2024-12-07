@@ -1,6 +1,6 @@
 "use client";
 import {useRouter} from "next/navigation";
-import {useState} from "react";
+import {useState, useEffect} from "react";
 import {useMutation} from "@tanstack/react-query";
 import Box from "@mui/material/Box";
 import List from "@mui/material/List";
@@ -21,7 +21,7 @@ import Button from "@mui/material/Button";
 import {toast} from "sonner";
 import AdminUtils from "@/utils/AdminUtils";
 import {signOut} from 'next-auth/react';
-import {CircularProgress} from "@mui/material";
+import {CircularProgress, Badge} from "@mui/material";
 import ArticleIcon from '@mui/icons-material/Article';
 import RssFeedIcon from '@mui/icons-material/RssFeed';
 import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates';
@@ -31,12 +31,64 @@ import SpaIcon from '@mui/icons-material/Spa';
 import QuickreplyIcon from '@mui/icons-material/Quickreply';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import MarkEmailUnreadIcon from '@mui/icons-material/MarkEmailUnread';
+import { db } from '@/server/db/fireStore';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { useChatStore } from "@/store/useChatStore";
 
-
-function SideNav({navState, activeRoute}) {
+function SideNav({navState, activeRoute, userProfile, activeChatId}) {
     const router = useRouter();
     const [confirmExit, setConfirmExit] = useState(false);
     const [loggingOut, setLoggingOut] = useState(false);
+    const { inChatView, unreadMessages, setInChatView } = useChatStore();
+
+    useEffect(() => {
+        if (!userProfile?._id) return;
+
+        const chatsRef = collection(db, 'chats');
+        const userChatsQuery = query(
+            chatsRef,
+            where('type', '==', 'medical_consultation'),
+            where('participants', 'array-contains', {
+                userId: userProfile._id,
+                role: 'User',
+                name: userProfile.firstName,
+                status: userProfile.status || 'offline',
+            })
+        );
+
+        const unsubscribe = onSnapshot(userChatsQuery, (snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                if (change.type === 'modified') {
+                    const chatData = change.doc.data();
+                    const lastMessage = chatData.lastMessage;
+
+                    // Only add notification if message is from health worker and we're not in chat view
+                    if (lastMessage &&
+                        lastMessage.sender &&
+                        lastMessage.sender.role === 'HealthWorker' &&
+                        lastMessage.status === 'sent' &&
+                        (!inChatView || activeChatId !== change.doc.id)) {
+                        useChatStore.getState().addMessageNotification(change.doc.id);
+                    }
+                }
+            });
+        });
+
+        return () => {
+            unsubscribe();
+        };
+    }, [userProfile?._id, inChatView, activeChatId]);
+
+    // Update chat view status when navigating
+    useEffect(() => {
+        setInChatView(activeRoute === '/user/tools/chat');
+
+        // Clear all notifications when entering chat view
+        if (activeRoute === '/user/tools/chat') {
+            useChatStore.getState().resetAllNotifications();
+        }
+    }, [activeRoute, setInChatView]);
+
     const mutation = useMutation({
         mutationKey: ['Logout'],
         mutationFn: AdminUtils.userLogout,
@@ -243,32 +295,63 @@ function SideNav({navState, activeRoute}) {
                 >
                     {showIcons && (
                         <ListItemIcon sx={{color: "limegreen"}}>
-                            <QuickreplyIcon/>
+                            <Badge
+                                badgeContent={unreadMessages}
+                                color="error"
+                                sx={{
+                                    '& .MuiBadge-badge': {
+                                        backgroundColor: '#ff4444',
+                                        color: 'white',
+                                    }
+                                }}
+                            >
+                                <QuickreplyIcon />
+                            </Badge>
                         </ListItemIcon>
                     )}
-                    {showText && <ListItemText primary="Chat"/>}
+                    {showText && (
+                        <ListItemText
+                            primary={
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    <Typography>Chat</Typography>
+                                    {unreadMessages > 0 && (
+                                        <Typography
+                                            component="span"
+                                            sx={{
+                                                ml: 1,
+                                                color: '#ff4444',
+                                                fontSize: '0.75rem',
+                                            }}
+                                        >
+                                            ({unreadMessages} new)
+                                        </Typography>
+                                    )}
+                                </Box>
+                            }
+                        />
+                    )}
                 </ListItem>
             </List>
 
-            {/* Community Health Trends */}
-            {showText && (
-                <Typography variant="overline" sx={{mb: 0, ml: 1}}>
-                    Community Trends
-                </Typography>
-            )}
-            <List>
-                <ListItem
-                    onClick={() => handleNavigation("/user/dashboard/health-trends")}
-                    sx={{...hoverStyle, ...(activeRoute === "/user/dashboard/health-trends" ? activeStyle : {})}}
-                >
-                    {showIcons && (
-                        <ListItemIcon sx={{color: "white"}}>
-                            <ArticleIcon/>
-                        </ListItemIcon>
-                    )}
-                    {showText && <ListItemText primary="Infographics"/>}
-                </ListItem>
-            </List>
+            {/*/!* Community Health Trends *!/*/}
+            {/*{showText && (*/}
+            {/*    <Typography variant="overline" sx={{mb: 0, ml: 1}}>*/}
+            {/*        Community Trends*/}
+            {/*    </Typography>*/}
+            {/*)}*/}
+            {/*<List>*/}
+            {/*    <ListItem*/}
+            {/*        onClick={() => handleNavigation("/user/dashboard/health-trends")}*/}
+            {/*        sx={{...hoverStyle, ...(activeRoute === "/user/dashboard/health-trends" ? activeStyle : {})}}*/}
+            {/*    >*/}
+            {/*        {showIcons && (*/}
+            {/*            <ListItemIcon sx={{color: "white"}}>*/}
+            {/*                <ArticleIcon/>*/}
+            {/*            </ListItemIcon>*/}
+            {/*        )}*/}
+            {/*        {showText && <ListItemText primary="Infographics"/>}*/}
+            {/*    </ListItem>*/}
+            {/*</List>*/}
 
             {/* Management */}
             {showText && (

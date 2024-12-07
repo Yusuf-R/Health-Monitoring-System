@@ -7,7 +7,7 @@ import LazyLoading from "@/components/LazyLoading/LazyLoading";
 import { useRouter } from "next/navigation";
 
 // Lazy-loaded profile component
-const Profile = lazy(() => import("@/components/UserComponents/UserProfile/Profile/Profile"));
+const Profile = lazy(() => import("@/components/UserComponents/Settings/UserProfile/Profile/Profile"));
 
 function UserProfile() {
     const router = useRouter();

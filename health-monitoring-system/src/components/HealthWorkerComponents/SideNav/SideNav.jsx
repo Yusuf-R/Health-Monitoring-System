@@ -1,6 +1,6 @@
 "use client";
 import {useRouter} from "next/navigation";
-import {useState} from "react";
+import {useState, useEffect} from "react";
 import {useMutation} from "@tanstack/react-query";
 import Box from "@mui/material/Box";
 import List from "@mui/material/List";
@@ -11,7 +11,6 @@ import DashboardIcon from "@mui/icons-material/Dashboard";
 import SettingsIcon from "@mui/icons-material/Settings";
 import LogoutIcon from "@mui/icons-material/Logout";
 import Typography from "@mui/material/Typography";
-import PlaceIcon from '@mui/icons-material/Place';
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
@@ -21,7 +20,7 @@ import Button from "@mui/material/Button";
 import {toast} from "sonner";
 import AdminUtils from "@/utils/AdminUtils";
 import {signOut} from 'next-auth/react';
-import {CircularProgress} from "@mui/material";
+import {CircularProgress, Badge} from "@mui/material";
 import ArticleIcon from '@mui/icons-material/Article';
 import RssFeedIcon from '@mui/icons-material/RssFeed';
 import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates';
@@ -31,12 +30,66 @@ import SpaIcon from '@mui/icons-material/Spa';
 import QuickreplyIcon from '@mui/icons-material/Quickreply';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import MarkEmailUnreadIcon from '@mui/icons-material/MarkEmailUnread';
+import PlaceIcon from '@mui/icons-material/Place';
+import { db } from '@/server/db/fireStore';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import  { useChatStore }  from '@/store/useChatStore';
 
-
-function SideNav({navState, activeRoute}) {
+function SideNav({navState, activeRoute, healthWorkerProfile, activeChatId}) {
     const router = useRouter();
     const [confirmExit, setConfirmExit] = useState(false);
     const [loggingOut, setLoggingOut] = useState(false);
+    const { inChatView, unreadMessages, setInChatView } = useChatStore();
+
+    // Listen for unread messages in chats
+    useEffect(() => {
+        if (!healthWorkerProfile?._id) return;
+
+        const chatsRef = collection(db, 'chats');
+        const workerChatsQuery = query(
+            chatsRef,
+            where('type', '==', 'medical_consultation'),
+            where('participants', 'array-contains', {
+                userId: healthWorkerProfile._id,
+                role: 'HealthWorker',
+                name: healthWorkerProfile.firstName,
+                status: healthWorkerProfile.status || 'offline'
+            })
+        );
+
+        const unsubscribe = onSnapshot(workerChatsQuery, (snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                if (change.type === 'modified') {
+                    const chatData = change.doc.data();
+                    const lastMessage = chatData.lastMessage;
+
+                    // Only add notification if message is from user and we're not in chat view
+                    if (lastMessage &&
+                        lastMessage.sender &&
+                        lastMessage.sender.role === 'User' &&
+                        lastMessage.status === 'sent' &&
+                        (!inChatView || activeChatId !== change.doc.id)) {
+                        useChatStore.getState().addMessageNotification(change.doc.id);
+                    }
+                }
+            });
+        });
+
+        return () => {
+            unsubscribe();
+        };
+    }, [healthWorkerProfile?._id, inChatView, activeChatId]);
+
+    // Update chat view status when navigating
+    useEffect(() => {
+        setInChatView(activeRoute === '/health-worker/tools/chat');
+
+        // Clear all notifications when entering chat view
+        if (activeRoute === '/health-worker/tools/chat') {
+            useChatStore.getState().resetAllNotifications();
+        }
+    }, [activeRoute, setInChatView]);
+
     const mutation = useMutation({
         mutationKey: ['Logout'],
         mutationFn: AdminUtils.healthWorkerLogout,
@@ -165,43 +218,32 @@ function SideNav({navState, activeRoute}) {
             {/* Health Tools */}
             {showText && (
                 <Typography variant="overline" sx={{mb: 0, ml: 1}}>
-                    Personalized Insights
+                    Health Information Center
                 </Typography>
             )}
             <List>
-                <ListItem
-                    onClick={() => handleNavigation("/health-worker/personalized")}
-                    sx={{...hoverStyle, ...(activeRoute === "/health-worker/personalized" ? activeStyle : {})}}
-                >
-                    {showIcons && (
-                        <ListItemIcon sx={{color: "white"}}>
-                            <DashboardIcon/>
-                        </ListItemIcon>
-                    )}
-                    {showText && <ListItemText primary="Overview"/>}
-                </ListItem>
                 <ListItem
                     onClick={() => handleNavigation("/health-worker/personalized/health-check")}
                     sx={{...hoverStyle, ...(activeRoute === "/health-worker/personalized/health-check" ? activeStyle : {})}}
                 >
                     {showIcons && (
-                        <ListItemIcon sx={{color: "limegreen"}}>
+                        <ListItemIcon sx={{color: "#FFFF66"}}>
                             <SpaIcon/>
                         </ListItemIcon>
                     )}
-                    {showText && <ListItemText primary="Health Check"/>}
+                    {showText && <ListItemText primary="Health Resources"/>}
                 </ListItem>
 
                 <ListItem
-                    onClick={() => handleNavigation("/health-worker/personalized/logger")}
-                    sx={{...hoverStyle, ...(activeRoute === "/health-worker/personalized/logger" ? activeStyle : {})}}
+                    onClick={() => handleNavigation("/health-worker/personalized/logger/symptom-logger")}
+                    sx={{...hoverStyle, ...(activeRoute === "/health-worker/personalized/logger/symptom-logger" ? activeStyle : {})}}
                 >
                     {showIcons && (
-                        <ListItemIcon sx={{color: "gold"}}>
+                        <ListItemIcon sx={{color: "salmon"}}>
                             <MonitorHeartIcon/>
                         </ListItemIcon>
                     )}
-                    {showText && <ListItemText primary="Logger"/>}
+                    {showText && <ListItemText primary="Symptom Logger"/>}
                 </ListItem>
             </List>
 
@@ -214,20 +256,20 @@ function SideNav({navState, activeRoute}) {
             <List>
 
 
-                <ListItem
-                    onClick={() => handleNavigation("/health-worker/tools/inbox")}
-                    sx={{...hoverStyle, ...(activeRoute === "/health-worker/tools/inbox" ? activeStyle : {})}}
-                >
-                    {showIcons && (
-                        <ListItemIcon sx={{color: "limegreen"}}>
-                            <MarkEmailUnreadIcon/>
-                        </ListItemIcon>
-                    )}
-                    {showText && <ListItemText primary="Inbox"/>}
-                </ListItem>
                 {/*<ListItem*/}
-                {/*    onClick={() => handleNavigation("/user/tools/notifications")}*/}
-                {/*    sx={{...hoverStyle, ...(activeRoute === "/user/tools/notifications" ? activeStyle : {})}}*/}
+                {/*    onClick={() => handleNavigation("/health-worker/tools/inbox")}*/}
+                {/*    sx={{...hoverStyle, ...(activeRoute === "/health-worker/tools/inbox" ? activeStyle : {})}}*/}
+                {/*>*/}
+                {/*    {showIcons && (*/}
+                {/*        <ListItemIcon sx={{color: "limegreen"}}>*/}
+                {/*            <MarkEmailUnreadIcon/>*/}
+                {/*        </ListItemIcon>*/}
+                {/*    )}*/}
+                {/*    {showText && <ListItemText primary="Inbox"/>}*/}
+                {/*</ListItem>*/}
+                {/*<ListItem*/}
+                {/*    onClick={() => handleNavigation("/health-worker/tools/notifications")}*/}
+                {/*    sx={{...hoverStyle, ...(activeRoute === "/health-worker/tools/notifications" ? activeStyle : {})}}*/}
                 {/*>*/}
                 {/*    {showIcons && (*/}
                 {/*        <ListItemIcon sx={{color: "gold"}}>*/}
@@ -243,32 +285,63 @@ function SideNav({navState, activeRoute}) {
                 >
                     {showIcons && (
                         <ListItemIcon sx={{color: "limegreen"}}>
-                            <QuickreplyIcon/>
+                            <Badge
+                                badgeContent={unreadMessages}
+                                color="error"
+                                sx={{
+                                    '& .MuiBadge-badge': {
+                                        backgroundColor: '#ff4444',
+                                        color: 'white',
+                                    }
+                                }}
+                            >
+                                <QuickreplyIcon />
+                            </Badge>
                         </ListItemIcon>
                     )}
-                    {showText && <ListItemText primary="Chat"/>}
+                    {showText && (
+                        <ListItemText
+                            primary={
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    <Typography>Chat</Typography>
+                                    {unreadMessages > 0 && (
+                                        <Typography
+                                            component="span"
+                                            sx={{
+                                                ml: 1,
+                                                color: '#ff4444',
+                                                fontSize: '0.75rem',
+                                            }}
+                                        >
+                                            ({unreadMessages} new)
+                                        </Typography>
+                                    )}
+                                </Box>
+                            }
+                        />
+                    )}
                 </ListItem>
             </List>
 
-            {/* Community Health Trends */}
-            {showText && (
-                <Typography variant="overline" sx={{mb: 0, ml: 1}}>
-                    Community Trends
-                </Typography>
-            )}
-            <List>
-                <ListItem
-                    onClick={() => handleNavigation("/health-worker/dashboard/health-trends")}
-                    sx={{...hoverStyle, ...(activeRoute === "/health-worker/dashboard/health-trends" ? activeStyle : {})}}
-                >
-                    {showIcons && (
-                        <ListItemIcon sx={{color: "white"}}>
-                            <ArticleIcon/>
-                        </ListItemIcon>
-                    )}
-                    {showText && <ListItemText primary="Infographics"/>}
-                </ListItem>
-            </List>
+            {/*/!* Community Health Trends *!/*/}
+            {/*{showText && (*/}
+            {/*    <Typography variant="overline" sx={{mb: 0, ml: 1}}>*/}
+            {/*        Community Trends*/}
+            {/*    </Typography>*/}
+            {/*)}*/}
+            {/*<List>*/}
+            {/*    <ListItem*/}
+            {/*        onClick={() => handleNavigation("/health-worker/dashboard/health-trends")}*/}
+            {/*        sx={{...hoverStyle, ...(activeRoute === "/health-worker/dashboard/health-trends" ? activeStyle : {})}}*/}
+            {/*    >*/}
+            {/*        {showIcons && (*/}
+            {/*            <ListItemIcon sx={{color: "white"}}>*/}
+            {/*                <ArticleIcon/>*/}
+            {/*            </ListItemIcon>*/}
+            {/*        )}*/}
+            {/*        {showText && <ListItemText primary="Infographics"/>}*/}
+            {/*    </ListItem>*/}
+            {/*</List>*/}
 
             {/* Management */}
             {showText && (

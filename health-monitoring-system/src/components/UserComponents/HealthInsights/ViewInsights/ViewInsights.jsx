@@ -85,12 +85,53 @@ const metricUnits = {
     fruits: 'servings',
 };
 
-const metricGoals = {
+// Daily targets
+const dailyMetricGoals = {
     water: 8,
     steps: 10000,
     exercise: 30,
     sleep: 8,
     fruits: 5,
+};
+
+// Weekly targets (daily * 7)
+const weeklyMetricGoals = {
+    water: dailyMetricGoals.water * 7,
+    steps: dailyMetricGoals.steps * 7,
+    exercise: dailyMetricGoals.exercise * 7,
+    sleep: dailyMetricGoals.sleep * 7,
+    fruits: dailyMetricGoals.fruits * 7,
+};
+
+// Monthly targets (daily * 30)
+const monthlyMetricGoals = {
+    water: dailyMetricGoals.water * 30,
+    steps: dailyMetricGoals.steps * 30,
+    exercise: dailyMetricGoals.exercise * 30,
+    sleep: dailyMetricGoals.sleep * 30,
+    fruits: dailyMetricGoals.fruits * 30,
+};
+
+// Yearly targets (daily * 365)
+const yearlyMetricGoals = {
+    water: dailyMetricGoals.water * 365,
+    steps: dailyMetricGoals.steps * 365,
+    exercise: dailyMetricGoals.exercise * 365,
+    sleep: dailyMetricGoals.sleep * 365,
+    fruits: dailyMetricGoals.fruits * 365,
+};
+
+const getMetricGoal = (period) => {
+    switch (period) {
+        case 'week':
+            return weeklyMetricGoals;
+        case 'month':
+            return monthlyMetricGoals;
+        case 'year':
+            return yearlyMetricGoals;
+        default:
+            return dailyMetricGoals;
+    }
 };
 
 const metricColors = {
@@ -277,7 +318,7 @@ function ViewInsights({ userProfile }) {
         <Grid container spacing={3}>
             {Object.keys(metricsIcons).map((metric) => {
                 const currentValue = getMetricValue(dailyActivities[0], metric);
-                const progress = (currentValue / metricGoals[metric]) * 100;
+                const progress = (currentValue / dailyMetricGoals[metric]) * 100;
                 const colors = metricColors[metric];
                 const trend = trends[metric] || 0;
 
@@ -331,7 +372,7 @@ function ViewInsights({ userProfile }) {
                                             Progress
                                         </Typography>
                                         <Typography variant="body2" sx={{ color: colors.dark, fontWeight: 500 }}>
-                                            {currentValue} / {metricGoals[metric]} {metricUnits[metric]}
+                                            {currentValue} / {dailyMetricGoals[metric]} {metricUnits[metric]}
                                         </Typography>
                                     </Box>
                                     <LinearProgress
@@ -530,10 +571,34 @@ function ViewInsights({ userProfile }) {
                                                     datasets: [
                                                         {
                                                             label: metric,
-                                                            data: periodActivities.map(activity => {
-                                                                const metricArray = activity[metric] || [];
-                                                                return metricArray.reduce((sum, entry) => sum + (entry.value || 0), 0);
-                                                            }),
+                                                            data: (() => {
+                                                                const data = new Array(getLabels().length).fill(0);
+                                                                periodActivities.forEach(activity => {
+                                                                    if (!activity.date) return;
+                                                                    
+                                                                    const date = parseISO(activity.date);
+                                                                    let index;
+                                                                    
+                                                                    switch (selectedPeriod) {
+                                                                        case 'week':
+                                                                            index = date.getDay(); // 0-6 (Sunday-Saturday)
+                                                                            break;
+                                                                        case 'month':
+                                                                            index = date.getDate() - 1; // 0-30
+                                                                            break;
+                                                                        case 'year':
+                                                                            index = date.getMonth(); // 0-11
+                                                                            break;
+                                                                        default:
+                                                                            return;
+                                                                    }
+                                                                    
+                                                                    const metricArray = activity[metric] || [];
+                                                                    const value = metricArray.reduce((sum, entry) => sum + (entry.value || 0), 0);
+                                                                    data[index] = (data[index] || 0) + value;
+                                                                });
+                                                                return data;
+                                                            })(),
                                                             backgroundColor: alpha(colors.main, 0.8),
                                                             borderColor: colors.main,
                                                             borderWidth: 1,
@@ -561,13 +626,13 @@ function ViewInsights({ userProfile }) {
                                                         }}
                                                     >
                                                         <Typography variant="body2" color="text.secondary">
-                                                            Average
+                                                            Achieved/Target
                                                         </Typography>
                                                         <Typography variant="h6" sx={{ color: colors.dark }}>
-                                                            {(periodActivities.reduce((sum, activity) => {
+                                                            {periodActivities.reduce((sum, activity) => {
                                                                 const metricArray = activity[metric] || [];
                                                                 return sum + metricArray.reduce((metricSum, entry) => metricSum + (entry.value || 0), 0);
-                                                            }, 0) / (periodActivities.length || 1)).toFixed(1)}
+                                                            }, 0)} / {getMetricGoal(selectedPeriod)[metric]}
                                                         </Typography>
                                                     </Paper>
                                                 </Grid>
@@ -584,7 +649,7 @@ function ViewInsights({ userProfile }) {
                                                             Goal
                                                         </Typography>
                                                         <Typography variant="h6" sx={{ color: colors.dark }}>
-                                                            {metricGoals[metric]}
+                                                            {getMetricGoal(selectedPeriod)[metric]}
                                                         </Typography>
                                                     </Paper>
                                                 </Grid>
@@ -606,7 +671,7 @@ function ViewInsights({ userProfile }) {
                                                                 color: periodActivities.reduce((sum, activity) => {
                                                                     const metricArray = activity[metric] || [];
                                                                     return sum + metricArray.reduce((metricSum, entry) => metricSum + (entry.value || 0), 0);
-                                                                }, 0) / (periodActivities.length || 1) >= metricGoals[metric]
+                                                                }, 0) / getMetricGoal(selectedPeriod)[metric] >= 1
                                                                     ? 'success.main'
                                                                     : 'error.main'
                                                             }}
@@ -614,7 +679,7 @@ function ViewInsights({ userProfile }) {
                                                             {Math.round((periodActivities.reduce((sum, activity) => {
                                                                 const metricArray = activity[metric] || [];
                                                                 return sum + metricArray.reduce((metricSum, entry) => metricSum + (entry.value || 0), 0);
-                                                            }, 0) / (periodActivities.length || 1) / metricGoals[metric]) * 100)}%
+                                                            }, 0) / getMetricGoal(selectedPeriod)[metric]) * 100)}%
                                                         </Typography>
                                                     </Paper>
                                                 </Grid>

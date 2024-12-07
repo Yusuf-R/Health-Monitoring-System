@@ -56,15 +56,9 @@ export default function TipsAndGuides() {
         setError(false);
         try {
             const tipsRef = collection(db, 'tipsAndGuides');
-            // First try with timestamp
-            let q = query(tipsRef, orderBy('timestamp', 'desc'));
-            let snapshot = await getDocs(q);
-
-            // If no documents found, try with createdAt
-            if (snapshot.empty) {
-                q = query(tipsRef, orderBy('createdAt', 'desc'));
-                snapshot = await getDocs(q);
-            }
+            // Try to get all tips, sorted by createdAt
+            const q = query(tipsRef, orderBy('createdAt', 'desc'));
+            const snapshot = await getDocs(q);
 
             if (snapshot.empty) {
                 console.log('No tips and guides found');
@@ -72,12 +66,27 @@ export default function TipsAndGuides() {
                 return;
             }
 
-            const fetchedTips = snapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-            }));
+            const fetchedTips = snapshot.docs.map((doc) => {
+                const data = doc.data();
+                // Handle both old and new data structures
+                const processedData = {
+                    id: doc.id,
+                    title: data.title,
+                    category: data.category,
+                    // For snippet, try the new structure first, then fall back to old
+                    snippet: data.snippet || data.description || (data.content && data.content.introduction) || '',
+                    // Preserve all other data
+                    ...data,
+                    // Ensure content is available for both old and new structures
+                    content: data.content || {
+                        introduction: data.description || data.snippet || ''
+                    }
+                };
+                console.log('Processed tip data:', processedData);
+                return processedData;
+            });
 
-            console.log('Fetched tips:', fetchedTips);
+            console.log('All fetched tips:', fetchedTips);
             setTips(fetchedTips);
         } catch (err) {
             console.error('Error fetching tips and guides:', err);
@@ -243,7 +252,7 @@ export default function TipsAndGuides() {
                                             fontWeight: 600
                                         }}
                                     >
-                                        {tip.title}
+                                        {tip.title || 'Untitled Tip'}
                                     </Typography>
 
                                     <Typography
@@ -254,7 +263,7 @@ export default function TipsAndGuides() {
                                             flex: 1
                                         }}
                                     >
-                                        {tip.snippet}
+                                        {tip.snippet || tip.description || (tip.content && tip.content.introduction) || 'No description available'}
                                     </Typography>
 
                                     <Button

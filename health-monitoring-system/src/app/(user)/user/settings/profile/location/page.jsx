@@ -1,4 +1,4 @@
-import LandingPage from "@/components/UserComponents/UserProfile/Location/LandingPage/LandingPage";
+import LandingPage from "@/components/UserComponents/Settings/UserProfile/Location/LandingPage/LandingPage";
 
 function Location() {
     return (

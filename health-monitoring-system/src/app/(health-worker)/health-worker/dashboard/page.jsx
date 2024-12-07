@@ -26,18 +26,18 @@ function HealthWorkerDashboard() {
     });
 
     // Effective user data (cached or fetched)
-    const effectiveUserData = healthWorkerProfile || data;
+    const effectiveHealthWorkerData = healthWorkerProfile || data;
 
     // Encrypt and store profile data
     const encryptAndStoreData = useCallback(async () => {
-        if (effectiveUserData) {
+        if (effectiveHealthWorkerData) {
             try {
-                await AdminUtils.encryptAndStoreProfile(effectiveUserData);
+                await AdminUtils.encryptAndStoreProfile(effectiveHealthWorkerData);
             } catch (error) {
                 console.error("Encryption Error:", error);
             }
         }
-    }, [effectiveUserData]);
+    }, [effectiveHealthWorkerData]);
 
     // Handle location check for health worker
     const handleLocationCheck = useCallback((profile) => {
@@ -53,12 +53,12 @@ function HealthWorkerDashboard() {
 
     useEffect(() => {
         (async () => {
-            if (effectiveUserData) {
+            if (effectiveHealthWorkerData) {
                 await encryptAndStoreData(); // Encrypt and store data
-                handleLocationCheck(effectiveUserData); // Perform location check
+                handleLocationCheck(effectiveHealthWorkerData); // Perform location check
             }
         })(); // Immediately-invoked async function
-    }, [encryptAndStoreData, effectiveUserData, handleLocationCheck]);
+    }, [encryptAndStoreData, effectiveHealthWorkerData, handleLocationCheck]);
 
     // Handle loading state
     if (isLoading) {
@@ -77,7 +77,7 @@ function HealthWorkerDashboard() {
     // Render the dashboard
     return (
         <Suspense fallback={<LazyLoading />}>
-            {decryptedProfile && <Dashboard healthWorkerProfile={decryptedProfile} />}
+            <Dashboard healthWorkerProfile={decryptedProfile}/>
         </Suspense>
     );
 }

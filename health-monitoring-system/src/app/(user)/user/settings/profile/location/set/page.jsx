@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import DataFetchError from "@/components/Errors/DataFetchError/DataFetchError";
 
 // Lazy-loaded update profile component
-const SetLocation = lazy(() => import("@/components/UserComponents/UserProfile/Location/SetLocation/SetLocation"));
+const SetLocation = lazy(() => import("@/components/UserComponents/Settings/UserProfile/Location/SetLocation/SetLocation"));
 
 function SetUserLocation() {
     const queryClient = useQueryClient();

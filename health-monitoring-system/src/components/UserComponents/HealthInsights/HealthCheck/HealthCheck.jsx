@@ -74,40 +74,87 @@ export default function HealthCheck() {
     }, [conditions, searchQuery, selectedCategory]);
 
     const fetchHealthConditions = async () => {
+        setLoading(true);
+        setError(null);
         try {
-            const healthCollection = collection(db, 'healthConditions');
-            const q = query(healthCollection, orderBy('timestamp', 'desc'));
-            const snapshot = await getDocs(q);
-            const fetchedConditions = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+            const conditionsRef = collection(db, 'healthConditions');
+            // Try both createdAt and timestamp for backward compatibility
+            const q1 = query(conditionsRef, orderBy('createdAt', 'desc'));
+            const q2 = query(conditionsRef, orderBy('timestamp', 'desc'));
+
+            const [snapshot1, snapshot2] = await Promise.all([
+                getDocs(q1),
+                getDocs(q2)
+            ]);
+
+            // Combine and deduplicate results
+            const allDocs = [...snapshot1.docs, ...snapshot2.docs];
+            const uniqueDocs = Array.from(new Map(allDocs.map(doc => [doc.id, doc])).values());
+
+            if (uniqueDocs.length === 0) {
+                console.log('No health conditions found');
+                setConditions([]);
+                return;
+            }
+
+            const fetchedConditions = uniqueDocs.map(doc => {
+                const data = doc.data();
+                console.log('Processing condition:', { id: doc.id, ...data });
+
+                // Handle both old and new data structures
+                const processedData = {
+                    id: doc.id,
+                    // Basic fields with fallbacks
+                    title: data.title || '',
+                    category: data.category || '',
+                    snippet: data.snippet || data.description || (data.content && data.content.introduction) || '',
+
+                    // Content structure
+                    content: {
+                        introduction: data.content?.introduction || data.description || data.snippet || '',
+                        symptoms: data.content?.symptoms || data.symptoms || [],
+                        complications: data.content?.complications || data.complications || [],
+                        tips: data.content?.tips || data.tips || [],
+                        emergencySigns: data.content?.emergencySigns || data.emergencySigns || []
+                    },
+
+                    // Author information
+                    author: data.author || {
+                        id: data.authorId || '',
+                        name: data.authorName || 'Health Worker',
+                        role: data.authorRole || 'HealthWorker'
+                    },
+
+                    // Timestamps
+                    createdAt: data.createdAt || data.timestamp || null,
+                    updatedAt: data.updatedAt || null
+                };
+
+                console.log('Processed condition:', processedData);
+                return processedData;
+            });
+
+            console.log('All fetched conditions:', fetchedConditions);
             setConditions(fetchedConditions);
-        } catch (error) {
-            console.error('Error fetching health conditions:', error);
-            setError(error.message);
+        } catch (err) {
+            console.error('Error fetching health conditions:', err);
+            setError(err.message);
         } finally {
             setLoading(false);
         }
     };
 
     const filterConditions = () => {
-        let filtered = conditions;
+        const filtered = conditions.filter(condition => {
+            const matchesSearch = searchQuery === '' ||
+                condition.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                condition.snippet.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                condition.content.introduction.toLowerCase().includes(searchQuery.toLowerCase());
 
-        // Category filter
-        if (selectedCategory !== 'All') {
-            filtered = filtered.filter(condition => condition.category === selectedCategory);
-        }
+            const matchesCategory = selectedCategory === 'All' || condition.category === selectedCategory;
 
-        // Search filter
-        if (searchQuery) {
-            const query = searchQuery.toLowerCase();
-            filtered = filtered.filter(condition =>
-                condition.title.toLowerCase().includes(query) ||
-                condition.snippet.toLowerCase().includes(query) ||
-                condition.category.toLowerCase().includes(query)
-            );
-        }
+            return matchesSearch && matchesCategory;
+        });
 
         setFilteredConditions(filtered);
     };

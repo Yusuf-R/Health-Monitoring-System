@@ -148,15 +148,9 @@ function HealthWorkerLayout({children}) {
 
     if (isError || !data) {
         router.push("/error/e401");
-        return null;
     }
 
     const sideNavWidth = navState === "full" ? 250 : navState === "icon" ? 80 : 0;
-    console.log({
-        from: 'Layout',
-        healthWorkerProfile: effectiveHealthWorkerData,
-    })
-
     return (
         <Box
             sx={{

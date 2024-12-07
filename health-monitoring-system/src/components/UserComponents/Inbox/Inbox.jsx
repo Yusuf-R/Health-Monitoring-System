@@ -38,7 +38,7 @@ import {
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { db } from "@/server/db/fireStore";
-import { collection, query, where, orderBy, onSnapshot, updateDoc, doc, serverTimestamp, addDoc, getDocs } from "firebase/firestore";
+import { collection, query, where, orderBy, onSnapshot, updateDoc, doc, serverTimestamp, addDoc, getDocs, deleteDoc } from "firebase/firestore";
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import ListItemIcon from "@mui/material/ListItemIcon";
@@ -169,9 +169,6 @@ const Inbox = ({ userProfile }) => {
         switch (action) {
             case 'read':
                 handleMarkAsRead(selectedNotification.id);
-                break;
-            case 'archive':
-                handleArchive(selectedNotification.id);
                 break;
             case 'delete':
                 handleDelete(selectedNotification.id);
@@ -383,6 +380,19 @@ const Inbox = ({ userProfile }) => {
                             fontWeight: message.status === 'unread' ? 500 : 400
                         }}
                     />
+                    <Chip
+                        label="Read more"
+                        size="small"
+                        sx={{
+                            height: 24,
+                            fontSize: '0.75rem',
+                            bgcolor: message.status === 'unread' ? alpha(theme.palette.primary.main, 0.12) : alpha(theme.palette.grey[500], 0.12),
+                            color: "green",
+                            fontWeight: message.status === 'unread' ? 500 : 400
+                        }}
+                        onClick={() => handleOpenMessage(message)}
+
+                    />
                 </Box>
             </CardContent>
         </Card>
@@ -391,7 +401,7 @@ const Inbox = ({ userProfile }) => {
     const handleOpenMessage = async (message) => {
         setLoadingMessageId(message.id);
         try {
-            await router.push(`/user/tools/inbox/message/${message.id}`);
+            router.push(`/user/tools/inbox/message/${message.id}`);
         } finally {
             setLoadingMessageId(null);
         }
@@ -420,27 +430,13 @@ const Inbox = ({ userProfile }) => {
         }
     };
 
-    const handleArchive = async (id) => {
-        try {
-            const notificationRef = doc(db, "notifications", id);
-            await updateDoc(notificationRef, {
-                status: 'archived',
-                archivedAt: serverTimestamp()
-            });
-            toast.success('Notification archived');
-        } catch (error) {
-            console.error('Error archiving notification:', error);
-            toast.error('Failed to archive notification');
-        }
-    };
-
     const handleDelete = async (id) => {
         try {
             const notificationRef = doc(db, "notifications", id);
-            await updateDoc(notificationRef, {
-                status: 'deleted',
-                deletedAt: serverTimestamp()
-            });
+            await deleteDoc(notificationRef);
+            
+            // Update local state
+            setNotifications(prev => prev.filter(notif => notif.id !== id));
             toast.success('Notification deleted');
         } catch (error) {
             console.error('Error deleting notification:', error);
@@ -606,35 +602,18 @@ const Inbox = ({ userProfile }) => {
                 anchorEl={anchorEl}
                 open={Boolean(anchorEl)}
                 onClose={handleMenuClose}
-                slotProps={{
-                    paper: {
-                        elevation: 3,
-                        sx: {
-                            width: 200,
-                            mt: 1
-                        }
-                    }
-                }}
             >
-                {selectedNotification?.status === 'unread' && (
-                    <MenuItem onClick={() => handleAction('read')}>
-                        <ListItemIcon>
-                            <MarkReadIcon fontSize="small" />
-                        </ListItemIcon>
-                        Mark as read
-                    </MenuItem>
-                )}
-                <MenuItem onClick={() => handleAction('archive')}>
+                <MenuItem onClick={() => handleAction('read')}>
                     <ListItemIcon>
-                        <ArchiveIcon fontSize="small" />
+                        <MarkReadIcon fontSize="small" sx={{color: 'green'}}/>
                     </ListItemIcon>
-                    Archive
+                    Mark as Read
                 </MenuItem>
                 <MenuItem onClick={() => handleAction('delete')}>
                     <ListItemIcon>
-                        <DeleteIcon fontSize="small" color="error" />
+                        <DeleteIcon fontSize="small" sx={{color: '#FF0000'}}/>
                     </ListItemIcon>
-                    <Typography color="error">Delete</Typography>
+                    Delete
                 </MenuItem>
             </Menu>
         </Container>

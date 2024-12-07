@@ -55,7 +55,7 @@ function ViewLocation({healthWorkerProfile}) {
     const isLargeScreen = useMediaQuery('(min-width:900px)');
 
     useEffect(() => {
-        if (pathname.includes('set')) {
+        if (pathname.includes('/location/set')) {
             setActiveTab('/health-worker/settings/profile/location/set');
         } else if (pathname.includes('view')) {
             setActiveTab('/health-worker/settings/profile/location/view');

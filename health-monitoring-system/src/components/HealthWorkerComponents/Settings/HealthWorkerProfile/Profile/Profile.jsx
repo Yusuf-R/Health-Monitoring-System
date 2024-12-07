@@ -29,6 +29,7 @@ const PROFILE_FIELDS = [
     { key: 'stateOfOrigin', label: 'State of Origin' },
     { key: 'stateOfResidence', label: 'State of Residence' },
     { key: 'lga', label: 'LGA' },
+    { key: 'currlga', label: 'Current LGA' },
     { key: 'role', label: 'Role' },
     { key: 'profileStatus', label: 'Profile Status' },
     { key: 'specialization', label: 'Specialization' },
