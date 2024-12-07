@@ -333,25 +333,25 @@ function SideNav({navState, activeRoute, userProfile, activeChatId}) {
                 </ListItem>
             </List>
 
-            {/* Community Health Trends */}
-            {showText && (
-                <Typography variant="overline" sx={{mb: 0, ml: 1}}>
-                    Community Trends
-                </Typography>
-            )}
-            <List>
-                <ListItem
-                    onClick={() => handleNavigation("/user/dashboard/health-trends")}
-                    sx={{...hoverStyle, ...(activeRoute === "/user/dashboard/health-trends" ? activeStyle : {})}}
-                >
-                    {showIcons && (
-                        <ListItemIcon sx={{color: "white"}}>
-                            <ArticleIcon/>
-                        </ListItemIcon>
-                    )}
-                    {showText && <ListItemText primary="Infographics"/>}
-                </ListItem>
-            </List>
+            {/*/!* Community Health Trends *!/*/}
+            {/*{showText && (*/}
+            {/*    <Typography variant="overline" sx={{mb: 0, ml: 1}}>*/}
+            {/*        Community Trends*/}
+            {/*    </Typography>*/}
+            {/*)}*/}
+            {/*<List>*/}
+            {/*    <ListItem*/}
+            {/*        onClick={() => handleNavigation("/user/dashboard/health-trends")}*/}
+            {/*        sx={{...hoverStyle, ...(activeRoute === "/user/dashboard/health-trends" ? activeStyle : {})}}*/}
+            {/*    >*/}
+            {/*        {showIcons && (*/}
+            {/*            <ListItemIcon sx={{color: "white"}}>*/}
+            {/*                <ArticleIcon/>*/}
+            {/*            </ListItemIcon>*/}
+            {/*        )}*/}
+            {/*        {showText && <ListItemText primary="Infographics"/>}*/}
+            {/*    </ListItem>*/}
+            {/*</List>*/}
 
             {/* Management */}
             {showText && (

@@ -19,7 +19,7 @@ import {
     Tabs,
     Tab,
     Fade,
-    Button
+    Button, CardHeader
 } from '@mui/material';
 import {
     Search as SearchIcon,
@@ -34,6 +34,8 @@ import {
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { db } from '@/server/db/fireStore';
 import { useRouter } from 'next/navigation';
+import ActionMenu from '@/components/HealthWorkerComponents/AcionMenu/ActionMenu';
+
 
 const categoryIcons = {
     "Infectious Diseases": <VirusIcon />,
@@ -55,13 +57,25 @@ const getValidCategory = (category) => {
     return categoryColors.hasOwnProperty(category) ? category : "Other";
 };
 
-export default function HealthCheck() {
+const CATEGORIES = [
+    "Women's Health",
+    "Neurological Conditions",
+    "Sleep Disorders",
+    "Infectious Diseases",
+    "Mental Health",
+    "Cardiovascular Health",
+    "Respiratory Conditions",
+    "Digestive Health",
+    "Pediatric Health",
+    "Chronic Diseases"
+];
+
+export default function HealthCheck({ healthWorkerProfile }) {
     const [conditions, setConditions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
-    const [filteredConditions, setFilteredConditions] = useState([]);
     const router = useRouter();
     const theme = useTheme();
 
@@ -121,7 +135,7 @@ export default function HealthCheck() {
                     // Author information
                     author: data.author || {
                         id: data.authorId || '',
-                        name: data.authorName || 'Health Worker',
+                        name: data.authorName || 'Unknown Author',
                         role: data.authorRole || 'HealthWorker'
                     },
 
@@ -145,7 +159,7 @@ export default function HealthCheck() {
     };
 
     const filterConditions = () => {
-        const filtered = conditions.filter(condition => {
+        return conditions.filter(condition => {
             const matchesSearch = searchQuery === '' ||
                 condition.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 condition.snippet.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -155,8 +169,10 @@ export default function HealthCheck() {
 
             return matchesSearch && matchesCategory;
         });
+    };
 
-        setFilteredConditions(filtered);
+    const handleCreateNew = () => {
+        router.push('/health-worker/personalized/health-check/create');
     };
 
     if (loading) {
@@ -311,7 +327,7 @@ export default function HealthCheck() {
 
             {/* Conditions Grid */}
             <Grid container spacing={3}>
-                {filteredConditions.map((condition, index) => (
+                {filterConditions().map((condition, index) => (
                     <Grid item xs={12} sm={6} md={4} key={condition.id}>
                         <Fade in={true} timeout={500 + (index * 100)}>
                             <Card
@@ -326,6 +342,21 @@ export default function HealthCheck() {
                                     }
                                 }}
                             >
+                                <CardHeader
+                                    action={
+                                        <ActionMenu
+                                            item={condition}
+                                            type="health-check"
+                                            healthWorkerProfile={healthWorkerProfile}
+                                            onDelete={fetchHealthConditions}
+                                        />
+                                    }
+                                    title={
+                                        <Typography variant="h6" component="div">
+                                            {condition.title}
+                                        </Typography>
+                                    }
+                                />
                                 <CardContent>
                                     <Stack spacing={2}>
                                         {/* Category Chip */}
@@ -360,7 +391,7 @@ export default function HealthCheck() {
                                         <Button
                                             variant="text"
                                             endIcon={<ArrowIcon />}
-                                            onClick={() => router.push(`/user/personalized/health-check/${condition.id}`)}
+                                            onClick={() => router.push(`/health-worker/personalized/health-check/${condition.id}`)}
                                             sx={{
                                                 color: categoryColors[getValidCategory(condition.category)],
                                                 mt: 'auto',
@@ -378,7 +409,7 @@ export default function HealthCheck() {
                     </Grid>
                 ))}
 
-                {filteredConditions.length === 0 && (
+                {filterConditions().length === 0 && (
                     <Grid item xs={12}>
                         <Paper
                             elevation={3}
@@ -395,6 +426,21 @@ export default function HealthCheck() {
                     </Grid>
                 )}
             </Grid>
+
+            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+                <Button
+                    variant="contained"
+                    onClick={handleCreateNew}
+                    sx={{
+                        backgroundColor: '#1a237e',
+                        '&:hover': {
+                            backgroundColor: '#283593'
+                        }
+                    }}
+                >
+                    Create New Health Check
+                </Button>
+            </Box>
         </Container>
     );
 }

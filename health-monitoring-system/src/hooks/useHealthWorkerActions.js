@@ -17,7 +17,7 @@ export const useHealthWorkerActions = (healthWorkerProfile) => {
             await NotificationService.sendMedicalReviewNotification({
                 userId: updatedRequest.userId,
                 reviewerId: healthWorkerProfile._id,
-                reviewerName: healthWorkerProfile.fullName,
+                reviewerName: healthWorkerProfile.firstName,
                 medicalHistoryId: requestId,
                 message: review.message
             });
@@ -34,7 +34,7 @@ export const useHealthWorkerActions = (healthWorkerProfile) => {
                         { 
                             userId: healthWorkerProfile._id, 
                             role: 'HealthWorker',
-                            name: healthWorkerProfile.fullName 
+                            name: healthWorkerProfile.firstName
                         }
                     ],
                     type: 'medical_consultation',
@@ -62,7 +62,7 @@ export const useHealthWorkerActions = (healthWorkerProfile) => {
                 sender: {
                     id: healthWorkerProfile._id,
                     role: 'HealthWorker',
-                    name: healthWorkerProfile.fullName
+                    name: healthWorkerProfile.firstName
                 },
                 content,
                 attachments

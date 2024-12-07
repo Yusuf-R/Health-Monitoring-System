@@ -1,5 +1,5 @@
 'use client';
-import React, {useEffect, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {
     alpha,
     Box,
@@ -16,7 +16,7 @@ import {
     Typography,
     useTheme
 } from "@mui/material";
-import {collection, doc, getDoc, getDocs, query, updateDoc, where} from "firebase/firestore";
+import {collection, doc, getDoc, getDocs, query, updateDoc, where, orderBy} from "firebase/firestore";
 import {db} from "@/server/db/fireStore";
 import {
     Article as AllIcon,
@@ -28,6 +28,9 @@ import {
 } from "@mui/icons-material";
 import {useRouter} from "next/navigation";
 import AddIcon from "@mui/icons-material/Add";
+import ActionMenu from '@/components/HealthWorkerComponents/AcionMenu/ActionMenu';
+import {formatDate} from "@/utils/dateFormatter";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
 
 // Define category styles
 const categoryIcons = {
@@ -52,10 +55,39 @@ export default function Feeds({healthWorkerProfile}) {
     const [feeds, setFeeds] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedType, setSelectedType] = useState("all");
-    const [error, setError] = useState(false);
+    const [error, setError] = useState(null);
     const [votedPolls, setVotedPolls] = useState({});
     const router = useRouter();
     const theme = useTheme();
+
+    const fetchFeeds = useCallback(async () => {
+        try {
+            setLoading(true);
+            const feedsRef = collection(db, 'feeds');
+            const q = query(feedsRef, where("scope", "==", {
+                lga: healthWorkerProfile.currlga,
+                state: healthWorkerProfile.stateOfResidence,
+                country: "Nigeria"
+            }));
+            const snapshot = await getDocs(q);
+            const feedsData = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            setFeeds(feedsData);
+            setError(null);
+        } catch (err) {
+            console.error('Error fetching feeds:', err);
+            setError('Failed to load feeds. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    }, [healthWorkerProfile]);
+
+    useEffect(() => {
+        fetchFeeds();
+    }, [fetchFeeds, healthWorkerProfile]);
+
     const handleTabChange = (event, newValue) => {
         if (newValue === 'new-feed') {
             router.push('/health-worker/info-hub/feeds/create'); // Navigate to the desired route
@@ -63,32 +95,6 @@ export default function Feeds({healthWorkerProfile}) {
             setSelectedType(newValue); // Update the selected type
         }
     };
-
-    // Fetch feeds from Firestore
-    const fetchFeeds = async () => {
-        setLoading(true);
-        setError(false);
-        try {
-            const feedsRef = collection(db, "feeds");
-            const q = query(feedsRef, where("scope", "==", {
-                lga: healthWorkerProfile.currlga,
-                state: healthWorkerProfile.stateOfResidence,
-                country: "Nigeria"
-            }));
-            const snapshot = await getDocs(q);
-            const fetchedFeeds = snapshot.docs.map((doc) => ({id: doc.id, ...doc.data()}));
-            setFeeds(fetchedFeeds);
-        } catch (err) {
-            console.error("Error fetching feeds:", err);
-            setError(true);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchFeeds();
-    }, [healthWorkerProfile]);
 
     const handleVote = async (feedId, optionIndex) => {
         try {
@@ -124,6 +130,11 @@ export default function Feeds({healthWorkerProfile}) {
         }
     };
 
+    // Callback for refreshing data after deletion
+    const handleFeedDeleted = useCallback(() => {
+        fetchFeeds();
+    }, [fetchFeeds]);
+
     const filteredFeeds = selectedType === "all" ? feeds : feeds.filter(feed => feed.type === selectedType);
 
     if (loading) {
@@ -151,7 +162,7 @@ export default function Feeds({healthWorkerProfile}) {
                     }}
                 >
                     <Typography variant="h6" color="error" gutterBottom>
-                        Error loading feeds. Please try again later.
+                        {error}
                     </Typography>
                     <Button
                         variant="contained"
@@ -240,18 +251,37 @@ export default function Feeds({healthWorkerProfile}) {
                                 >
                                     <CardContent>
                                         {/* Header */}
-                                        <Stack direction="row" spacing={2} alignItems="center" sx={{mb: 2}}>
-                                            <Box sx={{color: categoryColors[feed.type]}}>
-                                                {categoryIcons[feed.type]}
-                                            </Box>
-                                            <Typography variant="h6" sx={{
-                                                color: '#fff',
-                                                fontWeight: 600,
-                                                flexGrow: 1
-                                            }}>
-                                                {feed.title}
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                                            <Stack direction="row" spacing={2} alignItems="center">
+                                                <Box sx={{color: categoryColors[feed.type] || 'gold'}}>
+                                                    {categoryIcons[feed.type]}
+                                                </Box>
+                                                <Typography variant="h6" sx={{
+                                                    color: '#fff',
+                                                    fontWeight: 600,
+                                                    flexGrow: 1
+                                                }}>
+                                                    {feed.title}
+                                                </Typography>
+                                            </Stack>
+                                            {feed?.author?.id && healthWorkerProfile?._id && feed.author.id === healthWorkerProfile._id && (
+                                                <ActionMenu
+                                                    item={feed}
+                                                    type="feed"
+                                                    healthWorkerProfile={healthWorkerProfile}
+                                                    onDelete={handleFeedDeleted}
+                                                />
+                                            )}
+                                        </Box>
+
+                                        {/* Timestamp */}
+                                        <Stack direction="row" spacing={1} alignItems="center">
+                                            <AccessTimeIcon sx={{ color: '#46F0F9', fontSize: '0.9rem' }} />
+                                            <Typography variant="body2" sx={{ color: '#46F0F9' }}>
+                                                {formatDate(feed.timestamp)}
                                             </Typography>
                                         </Stack>
+
 
                                         {/* Content */}
                                         {feed.poll ? (

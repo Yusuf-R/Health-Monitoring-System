@@ -1,21 +1,19 @@
 'use client';
-import FullArticle from "@/components/HealthWorkerComponents/NewsHub/NewsCentral/FullArticle/FullArticle";
-import {useParams} from "next/navigation";
 import {useQuery, useQueryClient} from "@tanstack/react-query";
+import {useParams} from "next/navigation";
 import AdminUtils from "@/utils/AdminUtils";
 import LazyLoading from "@/components/LazyLoading/LazyLoading";
 import {Suspense} from "react";
 import DataFetchError from "@/components/Errors/DataFetchError/DataFetchError";
+import CreateHealthCheck from "@/components/HealthWorkerComponents/HealthInsights/CreateHealthCheck/CreateHealthCheck";
 
-
-function FullArticlePage() {
+function createHealthCheck() {
     const queryClient = useQueryClient();
     const {id} = useParams(); // Use `useParams` hook for dynamic routes
-
-    // Retrieve cached health worker profile
+    // Retrieve cached user profile
     const {healthWorkerProfile} = queryClient.getQueryData(["HealthWorkerData"]) || {};
 
-    // Fetch health worker profile if not already cached
+    // Fetch user profile if not already cached
     const {data, isLoading, isError} = useQuery({
         queryKey: ["HealthWorkerData"],
         queryFn: AdminUtils.healthWorkerProfile,
@@ -41,15 +39,14 @@ function FullArticlePage() {
             </>
         );
     }
-
-
     return (
         <>
             <Suspense fallback={<LazyLoading/>}>
-                <FullArticle id={id} healthWorkerProfile={effectiveHealthWorkerData}/>
+                <CreateHealthCheck healthWorkerProfile={effectiveHealthWorkerData}/>
             </Suspense>
+
         </>
     )
 }
 
-export default FullArticlePage;
+export default createHealthCheck;

@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/server/db/fireStore";
 import {
@@ -37,6 +37,8 @@ import Stack from "@mui/material/Stack";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import {usePathname, useRouter} from "next/navigation";
+import ActionMenu from '@/components/HealthWorkerComponents/AcionMenu/ActionMenu';
+import {formatDate} from "@/utils/dateFormatter";
 
 const tabProps = {
     color: "#FFF",
@@ -47,18 +49,29 @@ const tabProps = {
     },
 };
 
+const categoryColors = {
+    advice: 'gold',
+    alerts: 'red',
+    events: 'blue',
+    polls: 'purple'
+};
 
-export default function FullFeed({ id }) {
+export default function FullFeed({ id, healthWorkerProfile }) {
     const [feed, setFeed] = useState(null);
     const [loading, setLoading] = useState(true);
     const [votedOption, setVotedOption] = useState(null);
     const router = useRouter();
     const pathname = usePathname();
 
-
     const handleTabChange = (event, newValue) => {
         router.push(newValue); // Navigate to the selected tab's route
     };
+
+    const handleFeedDeleted = useCallback(() => {
+        // Redirect to feeds list after deletion
+        router.push('/health-worker/info-hub/feeds');
+    }, [router]);
+
     useEffect(() => {
         const fetchFeed = async () => {
             try {
@@ -687,18 +700,24 @@ export default function FullFeed({ id }) {
                     alignItems="center"
                     sx={{ mb: 3 }}
                 >
-                    <RssFeedIcon sx={{ color: 'gold', fontSize: '35px' }}/>
+                    <RssFeedIcon sx={{ color: categoryColors[feed.type] || 'gold', fontSize: '35px' }}/>
                     <Box sx={{ flex: 1 }}>
-                        <Typography
-                            variant="h5"
-                            sx={{
-                                fontWeight: "bold",
-                                color: '#FFF',
-                                mb: 1
-                            }}
-                        >
-                            {feed.title}
-                        </Typography>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                            <Typography variant="h4" component="h1" sx={{
+                                color: '#fff',
+                                fontWeight: 600
+                            }}>
+                                {feed.title}
+                            </Typography>
+                            {feed.author.id === healthWorkerProfile?._id && (
+                                <ActionMenu
+                                    item={feed}
+                                    type="feed"
+                                    healthWorkerProfile={healthWorkerProfile}
+                                    onDelete={handleFeedDeleted}
+                                />
+                            )}
+                        </Box>
                         <Typography
                             variant="body2"
                             sx={{

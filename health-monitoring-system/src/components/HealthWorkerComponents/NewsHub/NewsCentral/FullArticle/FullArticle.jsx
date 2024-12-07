@@ -14,9 +14,10 @@ import {
     Public as PublicIcon
 } from '@mui/icons-material';
 import {tabProps} from "@/utils/data"
+import ActionMenu from '@/components/HealthWorkerComponents/AcionMenu/ActionMenu';
+import {formatDate} from "@/utils/dateFormatter";
 
-
-export default function FullArticle({id}) {
+export default function FullArticle({id, healthWorkerProfile}) {
     const [article, setArticle] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
@@ -153,17 +154,16 @@ export default function FullArticle({id}) {
                     />
                 </Box>
 
-                <Typography
-                    variant="h3"
-                    sx={{
-                        fontWeight: "bold",
-                        mb: 3,
-                        color: '#fff',
-                        pl: 4
-                    }}
-                >
-                    {article.title}
-                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, ml:6, color:'#FFF' }}>
+                    <Typography variant="h4" component="h1" gutterBottom>
+                        {article.title}
+                    </Typography>
+                    <ActionMenu
+                        item={article}
+                        type="news"
+                        healthWorkerProfile={healthWorkerProfile}
+                    />
+                </Box>
 
                 <Stack
                     direction="row"
@@ -179,12 +179,7 @@ export default function FullArticle({id}) {
                             fontStyle: 'italic'
                         }}
                     >
-                        {new Date(article.timestamp).toLocaleDateString('en-US', {
-                            weekday: 'long',
-                            month: 'long',
-                            day: 'numeric',
-                            year: 'numeric',
-                        })}
+                        {formatDate(article.timestamp)}
                     </Typography>
                 </Stack>
 

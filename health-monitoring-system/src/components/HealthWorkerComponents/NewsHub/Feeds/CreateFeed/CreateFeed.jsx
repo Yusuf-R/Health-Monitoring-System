@@ -1,6 +1,6 @@
 'use client';
 
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
     Accordion,
     AccordionDetails,
@@ -25,15 +25,16 @@ import {
 import Grid from '@mui/material/Grid2';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {addDoc, collection, serverTimestamp} from 'firebase/firestore';
+import {addDoc, collection, doc, getDoc, serverTimestamp, updateDoc} from 'firebase/firestore';
 import {db} from '@/server/db/fireStore';
 import {toast} from 'sonner';
 import {statesAndLGAs} from "@/utils/data";
 import {useRouter} from 'next/navigation';
 import {ArrowBack as ArrowBackIcon} from "@mui/icons-material";
 import TipTapEditor from "@/components/TipTapEditor/TipTapEditor";
-import { NotificationManager } from '@/utils/notificationManager';
-import { NOTIFICATION_TYPES, NOTIFICATION_SCOPES } from '@/utils/notificationTypes';
+import {NotificationManager} from '@/utils/notificationManager';
+import {useSearchParams} from 'next/navigation';
+import LazyLoading from "@/components/LazyLoading/LazyLoading";
 
 const FEED_TYPES = ['advice', 'alerts', 'events', 'polls'];
 
@@ -49,6 +50,11 @@ function CreateFeed({healthWorkerProfile}) {
     const [newAltName, setNewAltName] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
+
+    // Add edit mode support
+    const searchParams = useSearchParams();
+    const editId = searchParams.get('edit');
+    const [loading, setLoading] = useState(!!editId);
 
     const handleBack = () => {
         router.back();
@@ -105,6 +111,30 @@ function CreateFeed({healthWorkerProfile}) {
     const [newExamText, setNewExamText] = useState('');
     const [newPreventionText, setNewPreventionText] = useState('');
     const [newOutlookText, setNewOutlookText] = useState('');
+
+    // State for polls
+    const [pollData, setPollData] = useState({
+        question: '',
+        options: []
+    });
+    const [newOption, setNewOption] = useState('');
+
+    // State for alerts
+    const [alertContent, setAlertContent] = useState({
+        mainMessage: '',
+        preventionMeasures: '',
+        symptoms: '',
+        emergencyInstructions: ''
+    });
+
+    // State for events
+    const [eventData, setEventData] = useState({
+        purpose: '',
+        dateTime: '',
+        location: '',
+        registrationDetails: '',
+        additionalInfo: ''
+    });
 
     // // State of Origin
     const getStateOptions = () => {
@@ -247,96 +277,12 @@ function CreateFeed({healthWorkerProfile}) {
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (!title.trim() || !snippet.trim()) {
-            toast.error('Please fill in all required fields');
-            return;
-        }
-
-        if (type === 'advice' && !adviceContent.introduction) {
-            toast.error('Please add an introduction for the advice');
-            return;
-        }
-
-        setIsSubmitting(true);
-        try {
-            const feedData = {
-                title: title.trim(),
-                snippet: snippet.trim(),
-                type,
-                scope: {lga, state, country},
-                timestamp: serverTimestamp(),
-                ...(alternativeNames.length > 0 && { alternativeNames }),
-                content: type === 'advice' ? {
-                    ...adviceContent,
-                    commonTypes
-                } : '',
-                author: {
-                    id: healthWorkerProfile._id,
-                    name: healthWorkerProfile.firstName,
-                    role: 'HealthWorker'
-                }
-            };
-
-            console.log({feedData});
-
-            // Create the feed
-            const docRef = await addDoc(collection(db, 'feeds'), feedData);
-
-            // Create notification using NotificationManager
-            await NotificationManager.createFeedNotification(
-                {
-                    id: docRef.id,
-                    title: feedData.title,
-                    type: feedData.type,
-                    snippet: feedData.snippet
-                },
-                feedData.scope,
-                feedData.author
-            );
-
-            toast.success('Feed published successfully!');
-            router.push('/health-worker/info-hub/feeds');
-
-            // Reset form
-            setTitle('');
-            setSnippet('');
-            setType('advice');
-            setState('');
-            setLGA('');
-            setAdviceContent({
-                introduction: '',
-                causes: [],
-                riskFactors: [],
-                symptoms: [],
-                examsTests: [],
-                treatment: [],
-                prevention: [],
-                outlook: [],
-                supportGroups: '',
-                references: []
-            });
-            setCommonTypes({
-                nga: {men: [], women: []},
-                worldwide: {mostCommon: [], regionalVariations: ''},
-                otherTypes: []
-            });
-
-        } catch (error) {
-            console.error('Error publishing feed:', error);
-            toast.error('Failed to publish feed. Please try again.');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
     const renderAdviceForm = () => (
         <>
-            <Grid size={{ xs: 12 }}>
+            <Grid size={{xs: 12}}>
                 <TipTapEditor
                     value={adviceContent.introduction}
-                    onChange={(value) => setAdviceContent(prev => ({ ...prev, introduction: value }))}
+                    onChange={(value) => setAdviceContent(prev => ({...prev, introduction: value}))}
                 />
             </Grid>
 
@@ -836,6 +782,392 @@ function CreateFeed({healthWorkerProfile}) {
         </>
     );
 
+    const renderPollForm = () => (
+        <Grid container spacing={3}>
+            <Grid size={{xs: 12}}>
+                <TextField
+                    fullWidth
+                    label="Poll Question"
+                    value={pollData.question}
+                    onChange={(e) => setPollData(prev => ({...prev, question: e.target.value}))}
+                    required
+                />
+            </Grid>
+
+            <Grid size={{xs: 12}}>
+                <Box sx={{mb: 2}}>
+                    <TextField
+                        fullWidth
+                        label="Add Option"
+                        value={newOption}
+                        onChange={(e) => setNewOption(e.target.value)}
+                        onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                if (newOption.trim()) {
+                                    setPollData(prev => ({
+                                        ...prev,
+                                        options: [...prev.options, { text: newOption.trim(), votes: 0 }]
+                                    }));
+                                    setNewOption('');
+                                }
+                            }
+                        }}
+                        InputProps={{
+                            endAdornment: (
+                                <Button
+                                    onClick={() => {
+                                        if (newOption.trim()) {
+                                            setPollData(prev => ({
+                                                ...prev,
+                                                options: [...prev.options, { text: newOption.trim(), votes: 0 }]
+                                            }));
+                                            setNewOption('');
+                                        }
+                                    }}
+                                    variant="contained"
+                                    size="small"
+                                    sx={{ml: 1}}
+                                >
+                                    Add
+                                </Button>
+                            ),
+                        }}
+                    />
+                </Box>
+                <List dense>
+                    {pollData.options.map((option, index) => (
+                        <ListItem key={index}>
+                            <ListItemText primary={option.text} />
+                            <ListItemSecondaryAction>
+                                <IconButton
+                                    edge="end"
+                                    aria-label="delete"
+                                    onClick={() => {
+                                        setPollData(prev => ({
+                                            ...prev,
+                                            options: prev.options.filter((_, i) => i !== index)
+                                        }));
+                                    }}
+                                >
+                                    <DeleteIcon />
+                                </IconButton>
+                            </ListItemSecondaryAction>
+                        </ListItem>
+                    ))}
+                </List>
+            </Grid>
+        </Grid>
+    );
+
+    const renderAlertForm = () => (
+        <Grid container spacing={3}>
+            <Grid size={{xs: 12}}>
+                <TextField
+                    fullWidth
+                    label="Main Alert Message"
+                    value={alertContent.mainMessage}
+                    onChange={(e) => setAlertContent(prev => ({...prev, mainMessage: e.target.value}))}
+                    multiline
+                    rows={4}
+                    required
+                />
+            </Grid>
+
+            <Grid size={{xs: 12}}>
+                <TextField
+                    fullWidth
+                    label="Prevention/Safety Measures"
+                    value={alertContent.preventionMeasures}
+                    onChange={(e) => setAlertContent(prev => ({...prev, preventionMeasures: e.target.value}))}
+                    multiline
+                    rows={4}
+                    helperText="Use markdown format. Example: 1. Measure one\n2. Measure two"
+                />
+            </Grid>
+
+            <Grid size={{xs: 12}}>
+                <TextField
+                    fullWidth
+                    label="Symptoms to Watch"
+                    value={alertContent.symptoms}
+                    onChange={(e) => setAlertContent(prev => ({...prev, symptoms: e.target.value}))}
+                    multiline
+                    rows={3}
+                    helperText="Use markdown format. Example: - Symptom one\n- Symptom two"
+                />
+            </Grid>
+
+            <Grid size={{xs: 12}}>
+                <TextField
+                    fullWidth
+                    label="Emergency Instructions"
+                    value={alertContent.emergencyInstructions}
+                    onChange={(e) => setAlertContent(prev => ({...prev, emergencyInstructions: e.target.value}))}
+                    multiline
+                    rows={3}
+                    required
+                />
+            </Grid>
+        </Grid>
+    );
+
+    const renderEventForm = () => (
+        <Grid container spacing={3}>
+            <Grid size={{xs: 12}}>
+                <TextField
+                    fullWidth
+                    label="Event Purpose"
+                    value={eventData.purpose}
+                    onChange={(e) => setEventData(prev => ({...prev, purpose: e.target.value}))}
+                    multiline
+                    rows={2}
+                    required
+                />
+            </Grid>
+
+            <Grid size={{xs: 12, sm: 6}}>
+                <TextField
+                    fullWidth
+                    label="Date and Time"
+                    type="datetime-local"
+                    value={eventData.dateTime}
+                    onChange={(e) => setEventData(prev => ({...prev, dateTime: e.target.value}))}
+                    InputLabelProps={{
+                        shrink: true,
+                    }}
+                    required
+                />
+            </Grid>
+
+            <Grid size={{xs: 12, sm: 6}}>
+                <TextField
+                    fullWidth
+                    label="Location"
+                    value={eventData.location}
+                    onChange={(e) => setEventData(prev => ({...prev, location: e.target.value}))}
+                    required
+                />
+            </Grid>
+
+            <Grid size={{xs: 12}}>
+                <TextField
+                    fullWidth
+                    label="Registration Details"
+                    value={eventData.registrationDetails}
+                    onChange={(e) => setEventData(prev => ({...prev, registrationDetails: e.target.value}))}
+                    multiline
+                    rows={2}
+                />
+            </Grid>
+
+            <Grid size={{xs: 12}}>
+                <TextField
+                    fullWidth
+                    label="Additional Information"
+                    value={eventData.additionalInfo}
+                    onChange={(e) => setEventData(prev => ({...prev, additionalInfo: e.target.value}))}
+                    multiline
+                    rows={3}
+                />
+            </Grid>
+        </Grid>
+    );
+
+    // Load initial data if in edit mode
+    useEffect(() => {
+        const fetchFeedForEdit = async () => {
+            if (editId) {
+                try {
+                    const docRef = doc(db, 'feeds', editId);
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        // Set all the form fields
+                        setTitle(data.title || '');
+                        setSnippet(data.snippet || '');
+                        setType(data.type || 'advice');
+                        setState(data.scope?.state || '');
+                        setLGA(data.scope?.lga || '');
+                        setCountry(data.scope?.country || 'Nigeria');
+                        setAlternativeNames(data.alternativeNames || []);
+
+                        if (data.type === 'advice' && data.content) {
+                            setAdviceContent({
+                                introduction: data.content.introduction || '',
+                                causes: data.content.causes || [],
+                                riskFactors: data.content.riskFactors || [],
+                                symptoms: data.content.symptoms || [],
+                                examsTests: data.content.examsTests || [],
+                                treatment: data.content.treatment || [],
+                                prevention: data.content.prevention || [],
+                                outlook: data.content.outlook || [],
+                                supportGroups: data.content.supportGroups || '',
+                                references: data.content.references || []
+                            });
+
+                            // Set common types if they exist
+                            if (data.content.commonTypes) {
+                                setCommonTypes(data.content.commonTypes);
+                            }
+                        } else if (data.type === 'polls' && data.content) {
+                            setPollData({
+                                question: data.content.poll.question || '',
+                                options: data.content.poll.options || []
+                            });
+                        } else if (data.type === 'alerts' && data.content) {
+                            setAlertContent({
+                                mainMessage: data.content.split('\n### Prevention Measures:\n')[0],
+                                preventionMeasures: data.content.split('\n### Prevention Measures:\n')[1].split('\n### Symptoms to Watch:\n')[0],
+                                symptoms: data.content.split('\n### Symptoms to Watch:\n')[1].split('\n### Emergency Instructions:\n')[0],
+                                emergencyInstructions: data.content.split('\n### Emergency Instructions:\n')[1]
+                            });
+                        } else if (data.type === 'events' && data.content) {
+                            setEventData({
+                                purpose: data.content.purpose || '',
+                                dateTime: data.content.dateTime || '',
+                                location: data.content.location || '',
+                                registrationDetails: data.content.registrationDetails || '',
+                                additionalInfo: data.content.additionalInfo || ''
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error fetching feed for edit:', error);
+                    toast.error('Failed to load feed for editing');
+                } finally {
+                    setLoading(false);
+                }
+            }
+        };
+
+        fetchFeedForEdit();
+    }, [editId]);
+
+    // Update handleSubmit to handle different feed types
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!title.trim() || !snippet.trim()) {
+            toast.error('Please fill in all required fields');
+            return;
+        }
+
+        // Validate type-specific required fields
+        if (type === 'polls' && (!pollData.question || pollData.options.length < 2)) {
+            toast.error('Please add a question and at least two options for the poll');
+            return;
+        }
+
+        if (type === 'alerts' && (!alertContent.mainMessage || !alertContent.emergencyInstructions)) {
+            toast.error('Please fill in the main alert message and emergency instructions');
+            return;
+        }
+
+        if (type === 'events' && (!eventData.purpose || !eventData.dateTime || !eventData.location)) {
+            toast.error('Please fill in all required event details');
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            let content;
+            switch (type) {
+                case 'advice':
+                    content = adviceContent;
+                    break;
+                case 'polls':
+                    content = {
+                        poll: {
+                            question: pollData.question,
+                            options: pollData.options
+                        }
+                    };
+                    break;
+                case 'alerts':
+                    content = `
+${alertContent.mainMessage}
+
+### Prevention Measures:
+${alertContent.preventionMeasures}
+
+### Symptoms to Watch:
+${alertContent.symptoms}
+
+### Emergency Instructions:
+${alertContent.emergencyInstructions}
+                    `.trim();
+                    break;
+                case 'events':
+                    content = {
+                        purpose: eventData.purpose,
+                        dateTime: eventData.dateTime,
+                        location: eventData.location,
+                        registrationDetails: eventData.registrationDetails,
+                        additionalInfo: eventData.additionalInfo
+                    };
+                    break;
+            }
+
+            const feedData = {
+                title: title.trim(),
+                snippet: snippet.trim(),
+                content,
+                type,
+                scope: { lga, state, country },
+                alternativeNames,
+                status: 'published'
+            };
+
+            if (editId) {
+                const feedRef = doc(db, 'feeds', editId);
+                await updateDoc(feedRef, {
+                    ...feedData,
+                    updatedAt: serverTimestamp()
+                });
+                toast.success('Feed updated successfully');
+            } else {
+                const feedRef = collection(db, 'feeds');
+                const feedDoc = await addDoc(feedRef, {
+                    ...feedData,
+                    timestamp: serverTimestamp(),
+                    createdAt: serverTimestamp()
+                });
+
+                // Create notification for new feed
+                await NotificationManager.createFeedNotification(
+                    {
+                        id: feedDoc.id,
+                        title: feedData.title,
+                        type: feedData.type,
+                        snippet: feedData.snippet
+                    },
+                    {
+                        lga,
+                        state,
+                        country
+                    },
+                    {
+                        id: healthWorkerProfile._id,
+                        name: `${healthWorkerProfile.firstName} ${healthWorkerProfile.lastName}`,
+                        role: 'HealthWorker'
+                    }
+                );
+                toast.success('Feed published successfully');
+            }
+
+            router.push('/health-worker/info-hub/feeds');
+        } catch (error) {
+            console.error('Error publishing feed:', error);
+            toast.error(editId ? 'Failed to update feed' : 'Failed to publish feed');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    if (loading) {
+        return <LazyLoading />;
+    }
+
     return (
         <>
             <Paper elevation={3} sx={{p: 3, maxWidth: '800px', mx: 'auto', my: 4}}>
@@ -862,7 +1194,7 @@ function CreateFeed({healthWorkerProfile}) {
                             transition: 'transform 0.2s ease-in-out', // Smooth hover animation
                         }}
                     >
-                        <ArrowBackIcon sx={{ color: '#81c784', fontSize: '40px' }} />
+                        <ArrowBackIcon sx={{color: '#81c784', fontSize: '40px'}}/>
                     </IconButton>
 
                     <Typography
@@ -875,7 +1207,7 @@ function CreateFeed({healthWorkerProfile}) {
                             color: '#ffffff', // White for contrast
                         }}
                     >
-                        Create New Feed
+                        {editId ? 'Edit Feed' : 'Create New Feed'}
                     </Typography>
                 </Box>
 
@@ -922,6 +1254,9 @@ function CreateFeed({healthWorkerProfile}) {
                         </Grid>
 
                         {type === 'advice' && renderAdviceForm()}
+                        {type === 'polls' && renderPollForm()}
+                        {type === 'alerts' && renderAlertForm()}
+                        {type === 'events' && renderEventForm()}
 
                         <Grid size={{xs: 12, sm: 6}}>
                             <TextField
@@ -1036,10 +1371,10 @@ function CreateFeed({healthWorkerProfile}) {
                                 {isSubmitting ? (
                                     <>
                                         <CircularProgress size={24} sx={{mr: 1}}/>
-                                        Publishing...
+                                        {editId ? 'Updating...' : 'Publishing...'}
                                     </>
                                 ) : (
-                                    'Publish Feed'
+                                    editId ? 'Update Feed' : 'Publish Feed'
                                 )}
                             </Button>
                         </Grid>

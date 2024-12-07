@@ -218,43 +218,32 @@ function SideNav({navState, activeRoute, healthWorkerProfile, activeChatId}) {
             {/* Health Tools */}
             {showText && (
                 <Typography variant="overline" sx={{mb: 0, ml: 1}}>
-                    Personalized Insights
+                    Health Information Center
                 </Typography>
             )}
             <List>
-                <ListItem
-                    onClick={() => handleNavigation("/health-worker/personalized")}
-                    sx={{...hoverStyle, ...(activeRoute === "/health-worker/personalized" ? activeStyle : {})}}
-                >
-                    {showIcons && (
-                        <ListItemIcon sx={{color: "white"}}>
-                            <DashboardIcon/>
-                        </ListItemIcon>
-                    )}
-                    {showText && <ListItemText primary="Overview"/>}
-                </ListItem>
                 <ListItem
                     onClick={() => handleNavigation("/health-worker/personalized/health-check")}
                     sx={{...hoverStyle, ...(activeRoute === "/health-worker/personalized/health-check" ? activeStyle : {})}}
                 >
                     {showIcons && (
-                        <ListItemIcon sx={{color: "limegreen"}}>
+                        <ListItemIcon sx={{color: "#FFFF66"}}>
                             <SpaIcon/>
                         </ListItemIcon>
                     )}
-                    {showText && <ListItemText primary="Health Check"/>}
+                    {showText && <ListItemText primary="Health Resources"/>}
                 </ListItem>
 
                 <ListItem
-                    onClick={() => handleNavigation("/health-worker/personalized/logger")}
-                    sx={{...hoverStyle, ...(activeRoute === "/health-worker/personalized/logger" ? activeStyle : {})}}
+                    onClick={() => handleNavigation("/health-worker/personalized/logger/symptom-logger")}
+                    sx={{...hoverStyle, ...(activeRoute === "/health-worker/personalized/logger/symptom-logger" ? activeStyle : {})}}
                 >
                     {showIcons && (
-                        <ListItemIcon sx={{color: "gold"}}>
+                        <ListItemIcon sx={{color: "salmon"}}>
                             <MonitorHeartIcon/>
                         </ListItemIcon>
                     )}
-                    {showText && <ListItemText primary="Logger"/>}
+                    {showText && <ListItemText primary="Symptom Logger"/>}
                 </ListItem>
             </List>
 
@@ -267,17 +256,17 @@ function SideNav({navState, activeRoute, healthWorkerProfile, activeChatId}) {
             <List>
 
 
-                <ListItem
-                    onClick={() => handleNavigation("/health-worker/tools/inbox")}
-                    sx={{...hoverStyle, ...(activeRoute === "/health-worker/tools/inbox" ? activeStyle : {})}}
-                >
-                    {showIcons && (
-                        <ListItemIcon sx={{color: "limegreen"}}>
-                            <MarkEmailUnreadIcon/>
-                        </ListItemIcon>
-                    )}
-                    {showText && <ListItemText primary="Inbox"/>}
-                </ListItem>
+                {/*<ListItem*/}
+                {/*    onClick={() => handleNavigation("/health-worker/tools/inbox")}*/}
+                {/*    sx={{...hoverStyle, ...(activeRoute === "/health-worker/tools/inbox" ? activeStyle : {})}}*/}
+                {/*>*/}
+                {/*    {showIcons && (*/}
+                {/*        <ListItemIcon sx={{color: "limegreen"}}>*/}
+                {/*            <MarkEmailUnreadIcon/>*/}
+                {/*        </ListItemIcon>*/}
+                {/*    )}*/}
+                {/*    {showText && <ListItemText primary="Inbox"/>}*/}
+                {/*</ListItem>*/}
                 {/*<ListItem*/}
                 {/*    onClick={() => handleNavigation("/health-worker/tools/notifications")}*/}
                 {/*    sx={{...hoverStyle, ...(activeRoute === "/health-worker/tools/notifications" ? activeStyle : {})}}*/}
@@ -334,25 +323,25 @@ function SideNav({navState, activeRoute, healthWorkerProfile, activeChatId}) {
                 </ListItem>
             </List>
 
-            {/* Community Health Trends */}
-            {showText && (
-                <Typography variant="overline" sx={{mb: 0, ml: 1}}>
-                    Community Trends
-                </Typography>
-            )}
-            <List>
-                <ListItem
-                    onClick={() => handleNavigation("/health-worker/dashboard/health-trends")}
-                    sx={{...hoverStyle, ...(activeRoute === "/health-worker/dashboard/health-trends" ? activeStyle : {})}}
-                >
-                    {showIcons && (
-                        <ListItemIcon sx={{color: "white"}}>
-                            <ArticleIcon/>
-                        </ListItemIcon>
-                    )}
-                    {showText && <ListItemText primary="Infographics"/>}
-                </ListItem>
-            </List>
+            {/*/!* Community Health Trends *!/*/}
+            {/*{showText && (*/}
+            {/*    <Typography variant="overline" sx={{mb: 0, ml: 1}}>*/}
+            {/*        Community Trends*/}
+            {/*    </Typography>*/}
+            {/*)}*/}
+            {/*<List>*/}
+            {/*    <ListItem*/}
+            {/*        onClick={() => handleNavigation("/health-worker/dashboard/health-trends")}*/}
+            {/*        sx={{...hoverStyle, ...(activeRoute === "/health-worker/dashboard/health-trends" ? activeStyle : {})}}*/}
+            {/*    >*/}
+            {/*        {showIcons && (*/}
+            {/*            <ListItemIcon sx={{color: "white"}}>*/}
+            {/*                <ArticleIcon/>*/}
+            {/*            </ListItemIcon>*/}
+            {/*        )}*/}
+            {/*        {showText && <ListItemText primary="Infographics"/>}*/}
+            {/*    </ListItem>*/}
+            {/*</List>*/}
 
             {/* Management */}
             {showText && (

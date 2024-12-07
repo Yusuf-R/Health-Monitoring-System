@@ -27,13 +27,16 @@ import {
     People as CommunityIcon,
     ArrowForward as ArrowIcon
 } from '@mui/icons-material';
+import AddIcon from "@mui/icons-material/Add";
+import ActionMenu from '@/components/HealthWorkerComponents/AcionMenu/ActionMenu';
 
 const categoryIcons = {
     "Health Tips": <HealthIcon sx={{ color: '#4caf50' }} />,
     "Emergency Guides": <EmergencyIcon sx={{ color: '#f44336' }} />,
     "Lifestyle Recommendations": <LifestyleIcon sx={{ color: '#2196f3' }} />,
     "Mental Health and Well-being": <MentalHealthIcon sx={{ color: '#9c27b0' }} />,
-    "Community-Focused Guides": <CommunityIcon sx={{ color: '#ff9800' }} />
+    "Community-Focused Guides": <CommunityIcon sx={{ color: '#ff9800' }} />,
+    "New": <AddIcon sx={{color: '#CC6600'}} />
 };
 
 const categoryColors = {
@@ -41,10 +44,11 @@ const categoryColors = {
     "Emergency Guides": '#f44336',
     "Lifestyle Recommendations": '#2196f3',
     "Mental Health and Well-being": '#9c27b0',
-    "Community-Focused Guides": '#ff9800'
+    "Community-Focused Guides": '#ff9800',
+    "New": '#CC6600',
 };
 
-export default function TipsAndGuides() {
+export default function TipsAndGuides({ healthWorkerProfile }) {
     const [tips, setTips] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
@@ -56,15 +60,9 @@ export default function TipsAndGuides() {
         setError(false);
         try {
             const tipsRef = collection(db, 'tipsAndGuides');
-            // First try with timestamp
-            let q = query(tipsRef, orderBy('timestamp', 'desc'));
-            let snapshot = await getDocs(q);
-
-            // If no documents found, try with createdAt
-            if (snapshot.empty) {
-                q = query(tipsRef, orderBy('createdAt', 'desc'));
-                snapshot = await getDocs(q);
-            }
+            // Try to get all tips, sorted by either timestamp
+            const q = query(tipsRef, orderBy('createdAt', 'desc'));
+            const snapshot = await getDocs(q);
 
             if (snapshot.empty) {
                 console.log('No tips and guides found');
@@ -72,12 +70,27 @@ export default function TipsAndGuides() {
                 return;
             }
 
-            const fetchedTips = snapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-            }));
+            const fetchedTips = snapshot.docs.map((doc) => {
+                const data = doc.data();
+                // Handle both old and new data structures
+                const processedData = {
+                    id: doc.id,
+                    title: data.title,
+                    category: data.category,
+                    // For snippet, try the new structure first, then fall back to old
+                    snippet: data.snippet || data.description || (data.content && data.content.introduction) || '',
+                    // Preserve all other data
+                    ...data,
+                    // Ensure content is available for both old and new structures
+                    content: data.content || {
+                        introduction: data.description || data.snippet || ''
+                    }
+                };
+                console.log('Processed tip data:', processedData);
+                return processedData;
+            });
 
-            console.log('Fetched tips:', fetchedTips);
+            console.log('All fetched tips:', fetchedTips);
             setTips(fetchedTips);
         } catch (err) {
             console.error('Error fetching tips and guides:', err);
@@ -139,6 +152,14 @@ export default function TipsAndGuides() {
         );
     }
 
+    const handleTabChange = (event, newValue) => {
+        if (newValue === 'New') {
+            router.push('/health-worker/info-hub/tips-guides/create'); // Navigate to the desired route
+        } else {
+            setSelectedCategory(newValue); // Update the selected type
+        }
+    };
+
     return (
         <Box sx={{
             p: 3,
@@ -154,7 +175,8 @@ export default function TipsAndGuides() {
             >
                 <Tabs
                     value={selectedCategory}
-                    onChange={(e, newValue) => setSelectedCategory(newValue)}
+                    onChange={handleTabChange}
+                    // onChange={(e, newValue) => setSelectedCategory(newValue)}
                     variant="scrollable"
                     scrollButtons="auto"
                     sx={{
@@ -216,22 +238,31 @@ export default function TipsAndGuides() {
                                     }
                                 }}
                             >
-                                <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                                <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
                                     <Stack
                                         direction="row"
                                         spacing={1}
                                         alignItems="center"
+                                        justifyContent="space-between"
                                         sx={{ mb: 2 }}
                                     >
-                                        {categoryIcons[tip.category]}
-                                        <Chip
-                                            label={tip.category}
-                                            size="small"
-                                            sx={{
-                                                backgroundColor: `${categoryColors[tip.category]}20`,
-                                                color: categoryColors[tip.category],
-                                                fontWeight: 500
-                                            }}
+                                        <Stack direction="row" spacing={1} alignItems="center">
+                                            {categoryIcons[tip.category]}
+                                            <Chip
+                                                label={tip.category}
+                                                size="small"
+                                                sx={{
+                                                    backgroundColor: `${categoryColors[tip.category]}20`,
+                                                    color: categoryColors[tip.category],
+                                                    fontWeight: 500
+                                                }}
+                                            />
+                                        </Stack>
+                                        <ActionMenu
+                                            item={tip}
+                                            type="tips"
+                                            healthWorkerProfile={healthWorkerProfile}
+                                            onDelete={fetchTipsAndGuides}
                                         />
                                     </Stack>
 
@@ -243,7 +274,7 @@ export default function TipsAndGuides() {
                                             fontWeight: 600
                                         }}
                                     >
-                                        {tip.title}
+                                        {tip.title || 'Untitled Tip'}
                                     </Typography>
 
                                     <Typography
@@ -254,7 +285,7 @@ export default function TipsAndGuides() {
                                             flex: 1
                                         }}
                                     >
-                                        {tip.snippet}
+                                        {tip.snippet || tip.description || (tip.content && tip.content.introduction) || 'No description available'}
                                     </Typography>
 
                                     <Button

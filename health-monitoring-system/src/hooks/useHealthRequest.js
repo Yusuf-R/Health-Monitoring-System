@@ -23,7 +23,7 @@ export const useHealthRequest = (userProfile) => {
                 userId: 'all_health_workers', // Special identifier for health worker group
                 type: 'medical_review',
                 title: 'New Health Check Request',
-                message: `New request from ${userProfile.fullName}`,
+                message: `New request from ${userProfile.firstName}`,
                 relatedTo: {
                     model: 'MedicalHistory',
                     id: savedRequest._id

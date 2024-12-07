@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
     Box,
@@ -30,6 +30,8 @@ import {
 } from '@mui/icons-material';
 import AddIcon from '@mui/icons-material/Add';
 import Link from "next/link";
+import ActionMenu from '@/components/HealthWorkerComponents/AcionMenu/ActionMenu';
+import {formatDate} from "@/utils/dateFormatter";
 
 const categoryIcons = {
     "lga": <LocalIcon />,
@@ -102,22 +104,14 @@ export default function NewsCentral({ healthWorkerProfile }) {
     const [tabValue, setTabValue] = useState("state");
     const [news, setNews] = useState([]);
     const [highlights, setHighlights] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const router = useRouter();
     const theme = useTheme();
 
-    const handleTabChange = (event, newValue) => {
-        if(newValue === 'new') {
-            router.push('/health-worker/info-hub/news/create');
-        }
-        setTabValue(newValue);
-    };
-
-    const fetchNews = async () => {
-        setLoading(true);
-        setError(false);
+    const fetchNews = useCallback(async () => {
         try {
+            setLoading(true);
             const newsRef = collection(db, "news");
             const q = query(
                 newsRef,
@@ -142,17 +136,29 @@ export default function NewsCentral({ healthWorkerProfile }) {
 
             const highlights = fetchedNews.slice(0, 5).map((article) => article.title);
             setHighlights(highlights);
-        } catch (error) {
-            console.error("Error fetching news:", error);
-            setError(true);
+            setError(null);
+        } catch (err) {
+            console.error("Error fetching news:", err);
+            setError('Failed to load news. Please try again.');
         } finally {
             setLoading(false);
         }
-    };
+    }, [tabValue, healthWorkerProfile]);
 
     useEffect(() => {
         fetchNews();
-    }, [tabValue, healthWorkerProfile]);
+    }, [fetchNews, tabValue, healthWorkerProfile]);
+
+    const handleTabChange = (event, newValue) => {
+        if(newValue === 'new') {
+            router.push('/health-worker/info-hub/news/create');
+        }
+        setTabValue(newValue);
+    };
+
+    const handleNewsDeleted = useCallback(() => {
+        fetchNews();
+    }, [fetchNews]);
 
     if (loading) {
         return (
@@ -237,7 +243,7 @@ export default function NewsCentral({ healthWorkerProfile }) {
                     }}
                 >
                     <Typography variant="h6" color="error" gutterBottom>
-                        Unable to fetch news. Please check your connection and try again.
+                        {error}
                     </Typography>
                     <Button
                         variant="contained"
@@ -274,28 +280,32 @@ export default function NewsCentral({ healthWorkerProfile }) {
                                 <CardContent>
                                     <Stack spacing={2}>
                                         {/* Header */}
-                                        <Stack direction="row" spacing={2} alignItems="flex-start">
-                                            <NewsIcon sx={{ color: categoryColors[tabValue] }} />
-                                            <Typography variant="h6" sx={{
-                                                color: '#fff',
-                                                fontWeight: 600,
-                                                flexGrow: 1,
-                                                lineHeight: 1.4
-                                            }}>
-                                                {article.title}
-                                            </Typography>
-                                        </Stack>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                                            <Stack direction="row" spacing={2} alignItems="center">
+                                                <NewsIcon sx={{ color: categoryColors[article.type] || 'gold' }} />
+                                                <Typography variant="h6" sx={{
+                                                    color: '#fff',
+                                                    fontWeight: 600,
+                                                    lineHeight: 1.4
+                                                }}>
+                                                    {article.title}
+                                                </Typography>
+                                            </Stack>
+                                            {article?.author?.id && healthWorkerProfile?._id && article.author.id === healthWorkerProfile._id && (
+                                                <ActionMenu
+                                                    item={article}
+                                                    type="news"
+                                                    healthWorkerProfile={healthWorkerProfile}
+                                                    onDelete={handleNewsDeleted}
+                                                />
+                                            )}
+                                        </Box>
 
                                         {/* Date */}
                                         <Stack direction="row" spacing={1} alignItems="center">
                                             <TimeIcon sx={{ color: '#46F0F9', fontSize: '0.9rem' }} />
                                             <Typography variant="body2" sx={{ color: '#46F0F9' }}>
-                                                {new Date(article.timestamp).toLocaleDateString('en-US', {
-                                                    weekday: 'short',
-                                                    month: 'short',
-                                                    day: 'numeric',
-                                                    year: 'numeric',
-                                                })}
+                                                {formatDate(article.timestamp)}
                                             </Typography>
                                         </Stack>
 

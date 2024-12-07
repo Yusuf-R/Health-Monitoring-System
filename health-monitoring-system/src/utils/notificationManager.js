@@ -1,4 +1,4 @@
-import { collection, addDoc, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, serverTimestamp, doc, updateDoc, writeBatch } from 'firebase/firestore';
 import { db } from '@/server/db/fireStore';
 import { NOTIFICATION_TYPES, NOTIFICATION_SCOPES, NOTIFICATION_STATUS } from './notificationTypes';
 
@@ -65,7 +65,7 @@ export const NotificationManager = {
             title: `New ${newsData.category}: ${newsData.title}`,
             message: newsData.snippet,
             contentId: newsData.id,
-            actionUrl: `/news/${newsData.id}`,
+            actionUrl: `/user/info-hub/news/${newsData.id}`,
             author: {
                 id: author.id,
                 name: author.name,
@@ -140,5 +140,73 @@ export const NotificationManager = {
                 notificationData
             );
         }
-    }
+    },
+
+
+    createTipNotification: async function(tip, author) {
+        try {
+            const notificationsRef = collection(db, 'notifications');
+            const usersRef = collection(db, 'users');
+            const q = query(usersRef, where('notificationPreferences.tipsGuides', '==', true));
+            const querySnapshot = await getDocs(q);
+
+            const batch = writeBatch(db);
+
+            querySnapshot.forEach((userDoc) => {
+                const notificationData = {
+                    userId: userDoc.id,
+                    type: 'new_tip',
+                    title: 'New Tip/Guide Available',
+                    message: `${tip.title} has been published in Tips & Guides`,
+                    status: 'unread',
+                    actionUrl: `/user/info-hub/tips-guides/${tip.id}`,
+                    createdAt: serverTimestamp(),
+                    contentId: tip.id,
+                    contentType: 'tip',
+                    category: tip.category,
+                    author: {
+                        id: author.id,
+                        name: author.name,
+                        role: author.role
+                    }
+                };
+
+                const newNotificationRef = doc(notificationsRef);
+                batch.set(newNotificationRef, notificationData);
+            });
+
+            await batch.commit();
+            return true;
+        } catch (error) {
+            console.error('Error creating tip notification:', error);
+            return false;
+        }
+    },
+
+    // Helper function to create health check notifications
+    createHealthCheckNotification: async (healthCheckData, author) => {
+        const notificationData = {
+            type: NOTIFICATION_TYPES.HEALTH_CHECK,
+            title: `New Health Check: ${healthCheckData.title}`,
+            message: healthCheckData.snippet,
+            contentId: healthCheckData.id,
+            actionUrl: `/user/personalized/health-check/${healthCheckData.id}`,
+            metadata: {
+                category: healthCheckData.category,
+                healthCheckId: healthCheckData.id
+            },
+            author: {
+                id: author.id,
+                name: author.name,
+                role: author.role
+            }
+        };
+
+        // Create notification for all users since health checks are important
+        return NotificationManager.createScopedNotification(
+            NOTIFICATION_SCOPES.NATIONAL,
+            'Nigeria',
+            notificationData
+        );
+    },
 };

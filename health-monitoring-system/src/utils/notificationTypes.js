@@ -2,7 +2,8 @@ export const NOTIFICATION_TYPES = {
     NEWS: 'NEWS',
     FEED: 'FEED',
     CHAT: 'CHAT',
-    ALERT: 'ALERT'
+    ALERT: 'ALERT',
+    HEALTH_CHECK: 'HEALTH_CHECK'
 };
 
 export const NOTIFICATION_SCOPES = {
